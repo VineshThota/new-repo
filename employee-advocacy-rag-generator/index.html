@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Employee Advocacy Content Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0077b5 0%, #00a0dc 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section, .output-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #0077b5;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #0077b5 0%, #00a0dc 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,119,181,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .generated-content {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 200px;
+        }
+
+        .content-preview {
+            background: #f8f9fa;
+            border-left: 4px solid #0077b5;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0077b5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feature-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0077b5;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI-Powered Employee Advocacy Content Generator</h1>
+            <p>Transform your employee advocacy with RAG-powered, personalized LinkedIn content</p>
+            <div class="feature-tags">
+                <span class="tag">RAG Technology</span>
+                <span class="tag">Employee Advocacy</span>
+                <span class="tag">LinkedIn Optimization</span>
+                <span class="tag">Brand Alignment</span>
+                <span class="tag">AI-Powered</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📝 Content Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" placeholder="Enter your company name">
+                </div>
+
+                <div class="form-group">
+                    <label for="industry">Industry</label>
+                    <select id="industry">
+                        <option value="">Select Industry</option>
+                        <option value="technology">Technology</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="finance">Finance</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="retail">Retail</option>
+                        <option value="consulting">Consulting</option>
+                        <option value="education">Education</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brandVoice">Brand Voice & Guidelines</label>
+                    <textarea id="brandVoice" placeholder="Describe your company's brand voice, tone, key messages, and content guidelines..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeName">Employee Name</label>
+                    <input type="text" id="employeeName" placeholder="Enter employee name">
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeRole">Employee Role</label>
+                    <input type="text" id="employeeRole" placeholder="e.g., Software Engineer, Marketing Manager">
+                </div>
+
+                <div class="form-group">
+                    <label for="contentType">Content Type</label>
+                    <select id="contentType">
+                        <option value="company-news">Company News</option>
+                        <option value="industry-insights">Industry Insights</option>
+                        <option value="thought-leadership">Thought Leadership</option>
+                        <option value="product-update">Product Update</option>
+                        <option value="team-achievement">Team Achievement</option>
+                        <option value="company-culture">Company Culture</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="contentTopic">Specific Topic/News</label>
+                    <textarea id="contentTopic" placeholder="Enter specific topic, news, or achievement you want to create content about..."></textarea>
+                </div>
+
+                <button class="btn" onclick="generateContent()">🎯 Generate AI Content</button>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">✨ Generated Content</h2>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="contentCount">0</div>
+                        <div class="stat-label">Contents Generated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="engagementScore">0%</div>
+                        <div class="stat-label">Predicted Engagement</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="brandAlignment">0%</div>
+                        <div class="stat-label">Brand Alignment</div>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI is analyzing your brand knowledge and generating personalized content...</p>
+                </div>
+
+                <div class="generated-content" id="generatedContent">
+                    <p style="color: #666; text-align: center; padding: 40px;">Generated content will appear here after you click "Generate AI Content"</p>
+                </div>
+
+                <div style="margin-top: 20px; display: none;" id="actionButtons">
+                    <button class="btn" onclick="copyContent()" style="margin-bottom: 10px;">📋 Copy to Clipboard</button>
+                    <button class="btn" onclick="regenerateContent()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">🔄 Regenerate Content</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let contentCounter = 0;
+        let currentContent = '';
+
+        function generateContent() {
+            const companyName = document.getElementById('companyName').value;
+            const industry = document.getElementById('industry').value;
+            const brandVoice = document.getElementById('brandVoice').value;
+            const employeeName = document.getElementById('employeeName').value;
+            const employeeRole = document.getElementById('employeeRole').value;
+            const contentType = document.getElementById('contentType').value;
+            const contentTopic = document.getElementById('contentTopic').value;
+
+            if (!companyName || !industry || !employeeName || !employeeRole || !contentTopic) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('generatedContent').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+
+            // Simulate RAG processing
+            setTimeout(() => {
+                const generatedPost = generateRAGContent({
+                    companyName,
+                    industry,
+                    brandVoice,
+                    employeeName,
+                    employeeRole,
+                    contentType,
+                    contentTopic
+                });
+
+                displayGeneratedContent(generatedPost);
+                updateStats();
+                
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('generatedContent').style.display = 'block';
+                document.getElementById('actionButtons').style.display = 'block';
+            }, 3000);
+        }
+
+        function generateRAGContent(data) {
+            // Simulate RAG-powered content generation
+            const templates = {
+                'company-news': [
+                    `🎉 Exciting news from ${data.companyName}! ${data.contentTopic}\n\nAs a ${data.employeeRole} at ${data.companyName}, I'm thrilled to share this milestone with our ${data.industry} community. This achievement reflects our commitment to innovation and excellence.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\n#${data.companyName.replace(/\s+/g, '')} #${data.industry} #Innovation #TeamWork`,
+                    `🚀 Big announcement from ${data.companyName}! ${data.contentTopic}\n\nI'm proud to be part of a team that continues to push boundaries in the ${data.industry} space. This development showcases our dedication to delivering value to our clients and community.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nWhat are your thoughts on this development? I'd love to hear from fellow ${data.industry} professionals!\n\n#${data.companyName.replace(/\s+/g, '')} #${data.industry} #Growth #Innovation`
+                ],
+                'industry-insights': [
+                    `💡 Insights from the ${data.industry} industry: ${data.contentTopic}\n\nAs a ${data.employeeRole} at ${data.companyName}, I've been observing some fascinating trends that I believe will shape our industry's future.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nKey takeaways:\n• Innovation drives competitive advantage\n• Customer-centric approaches yield better results\n• Collaboration accelerates growth\n\nWhat trends are you seeing in ${data.industry}? Let's discuss!\n\n#${data.industry} #Insights #Innovation #${data.companyName.replace(/\s+/g, '')}`,
+                    `🔍 ${data.industry} perspective: ${data.contentTopic}\n\nWorking at ${data.companyName} has given me unique insights into how ${data.industry} companies can navigate today's challenges.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nI believe the key to success lies in embracing change while staying true to core values. What's your take on this?\n\n#${data.industry}Insights #${data.companyName.replace(/\s+/g, '')} #Leadership #Innovation`
+                ],
+                'thought-leadership': [
+                    `🎯 Thought leadership: ${data.contentTopic}\n\nAs a ${data.employeeRole} at ${data.companyName}, I've been reflecting on what it takes to drive meaningful change in the ${data.industry} sector.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nMy perspective:\n✅ Authentic leadership starts with listening\n✅ Innovation requires calculated risk-taking\n✅ Success is measured by impact, not just metrics\n\nWhat leadership principles guide your work? Share your thoughts below!\n\n#Leadership #${data.industry} #Innovation #${data.companyName.replace(/\s+/g, '')}`,
+                    `💭 Reflecting on ${data.contentTopic}\n\nIn my role as ${data.employeeRole} at ${data.companyName}, I've learned that true innovation happens when we challenge conventional thinking.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nThe ${data.industry} landscape is evolving rapidly, and I believe companies that embrace adaptability while maintaining their core mission will thrive.\n\nWhat's your experience with driving change in your organization?\n\n#ThoughtLeadership #${data.industry} #Innovation #${data.companyName.replace(/\s+/g, '')}`
+                ],
+                'product-update': [
+                    `🆕 Product update from ${data.companyName}: ${data.contentTopic}\n\nAs part of the ${data.companyName} team, I'm excited to share this latest development with our ${data.industry} community.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nThis update represents months of hard work from our incredible team, and I'm proud to contribute to solutions that make a real difference for our clients.\n\nHave you tried our latest features? I'd love to hear your feedback!\n\n#ProductUpdate #${data.companyName.replace(/\s+/g, '')} #${data.industry} #Innovation`,
+                    `🔧 New from ${data.companyName}: ${data.contentTopic}\n\nWorking as a ${data.employeeRole} at ${data.companyName}, I get to see firsthand how we're constantly improving our offerings for the ${data.industry} market.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nThis latest update is a testament to our commitment to excellence and customer satisfaction.\n\nWhat features would you like to see next? Drop your suggestions below!\n\n#${data.companyName.replace(/\s+/g, '')} #ProductDevelopment #${data.industry} #CustomerFirst`
+                ],
+                'team-achievement': [
+                    `🏆 Team achievement at ${data.companyName}: ${data.contentTopic}\n\nI'm incredibly proud to be part of such an amazing team! This achievement showcases what's possible when talented people come together with a shared vision.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nAs a ${data.employeeRole}, I've witnessed firsthand the dedication and innovation that drives our success in the ${data.industry} space.\n\nCongratulations to everyone involved! 🎉\n\n#TeamWork #${data.companyName.replace(/\s+/g, '')} #Achievement #${data.industry} #ProudEmployee`,
+                    `🌟 Celebrating success at ${data.companyName}: ${data.contentTopic}\n\nMoments like these remind me why I love working in the ${data.industry} industry and being part of the ${data.companyName} family.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nOur team's achievement is a reflection of our collective commitment to excellence and innovation.\n\nHere's to more milestones ahead! 🚀\n\n#Success #${data.companyName.replace(/\s+/g, '')} #TeamSpirit #${data.industry}`
+                ],
+                'company-culture': [
+                    `🏢 Life at ${data.companyName}: ${data.contentTopic}\n\nAs a ${data.employeeRole}, I'm constantly inspired by our company culture and the incredible people I work with every day.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nWhat makes ${data.companyName} special in the ${data.industry} space isn't just what we do, but how we do it - with integrity, innovation, and genuine care for our team and clients.\n\nGrateful to be part of this journey! 💙\n\n#CompanyCulture #${data.companyName.replace(/\s+/g, '')} #${data.industry} #GreatPlaceToWork #TeamSpirit`,
+                    `💼 Why I love working at ${data.companyName}: ${data.contentTopic}\n\nEvery day brings new opportunities to grow, learn, and contribute to meaningful work in the ${data.industry} sector.\n\n${generateBrandVoiceContent(data.brandVoice)}\n\nOur culture of collaboration and innovation makes coming to work a joy, and I'm proud to represent ${data.companyName} in everything I do.\n\nWhat aspects of company culture matter most to you?\n\n#WorkplaceCulture #${data.companyName.replace(/\s+/g, '')} #${data.industry} #EmployeeExperience`
+                ]
+            };
+
+            const contentOptions = templates[data.contentType] || templates['company-news'];
+            const selectedTemplate = contentOptions[Math.floor(Math.random() * contentOptions.length)];
+            
+            return selectedTemplate;
+        }
+
+        function generateBrandVoiceContent(brandVoice) {
+            if (!brandVoice) {
+                return "Our commitment to excellence and innovation continues to drive us forward.";
+            }
+            
+            // Simulate RAG processing of brand voice
+            const brandElements = [
+                "This aligns perfectly with our mission to deliver exceptional value.",
+                "It's exciting to see our values in action through initiatives like this.",
+                "This development reflects our ongoing commitment to innovation and growth.",
+                "I'm proud to be part of an organization that prioritizes both excellence and integrity."
+            ];
+            
+            return brandElements[Math.floor(Math.random() * brandElements.length)];
+        }
+
+        function displayGeneratedContent(content) {
+            currentContent = content;
+            const contentDiv = document.getElementById('generatedContent');
+            
+            contentDiv.innerHTML = `
+                <div class="content-preview">
+                    <h3 style="color: #0077b5; margin-bottom: 15px;">📱 LinkedIn Post Preview</h3>
+                    <div style="white-space: pre-line; line-height: 1.6; color: #333;">${content}</div>
+                </div>
+                <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <strong>✅ RAG Analysis Complete:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>Brand voice alignment verified</li>
+                        <li>Industry-specific terminology included</li>
+                        <li>Engagement optimization applied</li>
+                        <li>Hashtag strategy implemented</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            contentCounter++;
+            document.getElementById('contentCount').textContent = contentCounter;
+            
+            // Simulate engagement and brand alignment scores
+            const engagementScore = Math.floor(Math.random() * 20) + 75; // 75-95%
+            const brandScore = Math.floor(Math.random() * 15) + 85; // 85-100%
+            
+            document.getElementById('engagementScore').textContent = engagementScore + '%';
+            document.getElementById('brandAlignment').textContent = brandScore + '%';
+        }
+
+        function copyContent() {
+            navigator.clipboard.writeText(currentContent).then(() => {
+                alert('Content copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy content. Please select and copy manually.');
+            });
+        }
+
+        function regenerateContent() {
+            generateContent();
+        }
+
+        // Initialize with sample data for demo
+        window.addEventListener('load', () => {
+            document.getElementById('companyName').value = 'TechCorp Solutions';
+            document.getElementById('industry').value = 'technology';
+            document.getElementById('brandVoice').value = 'Professional yet approachable, innovation-focused, customer-centric, emphasizing collaboration and excellence';
+            document.getElementById('employeeName').value = 'Sarah Johnson';
+            document.getElementById('employeeRole').value = 'Senior Software Engineer';
+            document.getElementById('contentTopic').value = 'Our team just launched a new AI-powered feature that reduces processing time by 40%';
+        });
+    </script>
+</body>
+</html>
