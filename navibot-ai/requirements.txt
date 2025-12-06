@@ -1,0 +1,85 @@
+# NaviBot AI - Physical AI Indoor Navigation System
+# Python Dependencies
+
+# Core AI/ML Libraries
+numpy>=1.21.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+tensorflow>=2.8.0
+torch>=1.11.0
+torchvision>=0.12.0
+
+# Computer Vision
+opencv-python>=4.5.0
+Pillow>=8.3.0
+imageio>=2.9.0
+
+# Robotics and SLAM
+# Note: ROS packages would typically be installed separately
+# These are Python equivalents for core functionality
+open3d>=0.13.0  # 3D point cloud processing
+transforms3d>=0.3.1  # 3D transformations
+
+# Path Planning and Navigation
+networkx>=2.6.0  # Graph algorithms for path planning
+shapely>=1.7.0  # Geometric operations
+
+# Data Processing
+pandas>=1.3.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Web Framework (for monitoring dashboard)
+fastapi>=0.68.0
+uvicorn>=0.15.0
+websockets>=9.1
+
+# Database
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+redis>=3.5.0  # Redis client
+sqlalchemy>=1.4.0  # ORM
+
+# Async and Threading
+aiofiles>=0.7.0
+aioredis>=2.0.0
+
+# Configuration and Logging
+pyyaml>=5.4.0
+loguru>=0.5.0
+python-dotenv>=0.19.0
+
+# Testing
+pytest>=6.2.0
+pytest-asyncio>=0.15.0
+pytest-cov>=2.12.0
+
+# Development Tools
+black>=21.6.0
+flake8>=3.9.0
+mypy>=0.910
+
+# Hardware Interface (simulation/mock for development)
+pyserial>=3.5  # Serial communication
+pygame>=2.0.0  # For simulation visualization
+
+# Mathematical Libraries
+sympy>=1.8.0  # Symbolic mathematics
+numba>=0.54.0  # JIT compilation for performance
+
+# Sensor Data Processing
+h5py>=3.3.0  # HDF5 file format
+protobuf>=3.17.0  # Protocol buffers
+
+# Utilities
+tqdm>=4.62.0  # Progress bars
+click>=8.0.0  # Command line interface
+requests>=2.26.0  # HTTP requests
+
+# Optional: Deep Learning Acceleration
+# Uncomment if using GPU acceleration
+# tensorflow-gpu>=2.8.0
+# torch-audio>=0.11.0
+
+# Optional: Advanced Computer Vision
+# detectron2  # Facebook's object detection (install separately)
+# mmcv-full  # OpenMMLab computer vision (install separately)
