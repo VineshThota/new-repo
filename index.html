@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaviBot AI - Autonomous Indoor Navigation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .navigation-map {
+            grid-column: span 2;
+            position: relative;
+            height: 500px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .map-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+        }
+
+        .grid-cell {
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .grid-cell.obstacle {
+            background: #dc3545;
+        }
+
+        .grid-cell.path {
+            background: #28a745;
+            animation: pathGlow 1s ease-in-out infinite alternate;
+        }
+
+        .grid-cell.robot {
+            background: #007bff;
+            border-radius: 50%;
+            animation: robotPulse 2s ease-in-out infinite;
+        }
+
+        .grid-cell.target {
+            background: #ffc107;
+            border-radius: 50%;
+        }
+
+        @keyframes pathGlow {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+
+        @keyframes robotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .status-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .sensor-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .sensor-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .ai-decisions {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .decision-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .decision-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .footer a {
+            color: #ffc107;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation-map {
+                grid-column: span 1;
+                height: 400px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 NaviBot AI</h1>
+            <p>Autonomous Indoor Navigation System with AI Agents</p>
+            <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">Combining LinkedIn's trending AI Agents with real-world indoor navigation challenges</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="startNavigation()">Start Navigation</button>
+            <button class="btn btn-success" onclick="generateObstacles()">Generate Obstacles</button>
+            <button class="btn btn-warning" onclick="resetMap()">Reset Map</button>
+            <button class="btn btn-primary" onclick="setRandomTarget()">Random Target</button>
+        </div>
+
+        <div class="dashboard">
+            <div class="panel navigation-map">
+                <div class="map-grid" id="mapGrid"></div>
+            </div>
+
+            <div class="panel status-panel">
+                <h3>🎯 Navigation Status</h3>
+                <div class="status-item">
+                    <span>Current Position:</span>
+                    <span id="currentPos">(1, 1)</span>
+                </div>
+                <div class="status-item">
+                    <span>Target Position:</span>
+                    <span id="targetPos">(18, 13)</span>
+                </div>
+                <div class="status-item">
+                    <span>Navigation Status:</span>
+                    <span id="navStatus">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span>Path Length:</span>
+                    <span id="pathLength">0</span>
+                </div>
+                <div class="status-item">
+                    <span>Obstacles Detected:</span>
+                    <span id="obstacleCount">0</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📊 Sensor Data</h3>
+                <div class="sensor-data">
+                    <div class="sensor-item">
+                        <div class="sensor-value" id="lidarRange">2.5m</div>
+                        <div>LiDAR Range</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-value" id="cameraFov">120°</div>
+                        <div>Camera FOV</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-value" id="imuHeading">45°</div>
+                        <div>IMU Heading</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-value" id="confidence">94%</div>
+                        <div>AI Confidence</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>🧠 AI Decision Log</h3>
+                <div class="ai-decisions" id="decisionLog">
+                    <div class="decision-item">
+                        <div>System initialized - Ready for navigation</div>
+                        <div class="decision-time">12:00:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>NaviBot AI</strong> - Autonomous Indoor Navigation System</p>
+            <p>Trending Topic: AI Agents & Autonomous Systems | Focus: Physical AI Navigation</p>
+            <p>GitHub: <a href="https://github.com/VineshThota/new-repo" target="_blank">VineshThota/new-repo</a> | 
+               Created by <a href="https://github.com/VineshThota" target="_blank">Vinesh Thota</a></p>
+        </div>
+    </div>
+
+    <script>
+        class NaviBotAI {
+            constructor() {
+                this.gridSize = { width: 20, height: 15 };
+                this.robotPos = { x: 1, y: 1 };
+                this.targetPos = { x: 18, y: 13 };
+                this.obstacles = new Set();
+                this.path = [];
+                this.isNavigating = false;
+                this.initializeGrid();
+                this.updateSensorData();
+                this.logDecision('NaviBot AI System Online - Autonomous navigation ready');
+            }
+
+            initializeGrid() {
+                const mapGrid = document.getElementById('mapGrid');
+                mapGrid.innerHTML = '';
+                
+                for (let y = 0; y < this.gridSize.height; y++) {
+                    for (let x = 0; x < this.gridSize.width; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.dataset.x = x;
+                        cell.dataset.y = y;
+                        cell.addEventListener('click', () => this.handleCellClick(x, y));
+                        mapGrid.appendChild(cell);
+                    }
+                }
+                
+                this.updateDisplay();
+            }
+
+            handleCellClick(x, y) {
+                if (x === this.robotPos.x && y === this.robotPos.y) return;
+                if (x === this.targetPos.x && y === this.targetPos.y) return;
+                
+                const key = `${x},${y}`;
+                if (this.obstacles.has(key)) {
+                    this.obstacles.delete(key);
+                    this.logDecision(`Obstacle removed at (${x}, ${y}) - Path clearance detected`);
+                } else {
+                    this.obstacles.add(key);
+                    this.logDecision(`Obstacle added at (${x}, ${y}) - Environment updated`);
+                }
+                
+                this.updateDisplay();
+            }
+
+            generateObstacles() {
+                this.obstacles.clear();
+                const numObstacles = Math.floor(Math.random() * 30) + 20;
+                
+                for (let i = 0; i < numObstacles; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * this.gridSize.width);
+                        y = Math.floor(Math.random() * this.gridSize.height);
+                    } while (
+                        (x === this.robotPos.x && y === this.robotPos.y) ||
+                        (x === this.targetPos.x && y === this.targetPos.y) ||
+                        this.obstacles.has(`${x},${y}`)
+                    );
+                    
+                    this.obstacles.add(`${x},${y}`);
+                }
+                
+                this.updateDisplay();
+                this.logDecision(`Generated ${numObstacles} obstacles using AI pattern recognition`);
+            }
+
+            setRandomTarget() {
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * this.gridSize.width);
+                    y = Math.floor(Math.random() * this.gridSize.height);
+                } while (
+                    (x === this.robotPos.x && y === this.robotPos.y) ||
+                    this.obstacles.has(`${x},${y}`)
+                );
+                
+                this.targetPos = { x, y };
+                this.updateDisplay();
+                this.logDecision(`New target set at (${x}, ${y}) using autonomous target selection`);
+            }
+
+            findPath() {
+                // A* pathfinding algorithm implementation
+                const start = this.robotPos;
+                const goal = this.targetPos;
+                const openSet = [start];
+                const closedSet = new Set();
+                const gScore = new Map();
+                const fScore = new Map();
+                const cameFrom = new Map();
+                
+                gScore.set(`${start.x},${start.y}`, 0);
+                fScore.set(`${start.x},${start.y}`, this.heuristic(start, goal));
+                
+                while (openSet.length > 0) {
+                    // Find node with lowest fScore
+                    let current = openSet.reduce((min, node) => {
+                        const currentF = fScore.get(`${node.x},${node.y}`) || Infinity;
+                        const minF = fScore.get(`${min.x},${min.y}`) || Infinity;
+                        return currentF < minF ? node : min;
+                    });
+                    
+                    if (current.x === goal.x && current.y === goal.y) {
+                        return this.reconstructPath(cameFrom, current);
+                    }
+                    
+                    openSet.splice(openSet.indexOf(current), 1);
+                    closedSet.add(`${current.x},${current.y}`);
+                    
+                    const neighbors = this.getNeighbors(current);
+                    for (const neighbor of neighbors) {
+                        const neighborKey = `${neighbor.x},${neighbor.y}`;
+                        
+                        if (closedSet.has(neighborKey) || this.obstacles.has(neighborKey)) {
+                            continue;
+                        }
+                        
+                        const tentativeGScore = (gScore.get(`${current.x},${current.y}`) || 0) + 1;
+                        
+                        if (!openSet.some(n => n.x === neighbor.x && n.y === neighbor.y)) {
+                            openSet.push(neighbor);
+                        } else if (tentativeGScore >= (gScore.get(neighborKey) || 0)) {
+                            continue;
+                        }
+                        
+                        cameFrom.set(neighborKey, current);
+                        gScore.set(neighborKey, tentativeGScore);
+                        fScore.set(neighborKey, tentativeGScore + this.heuristic(neighbor, goal));
+                    }
+                }
+                
+                return []; // No path found
+            }
+
+            heuristic(a, b) {
+                // Manhattan distance heuristic
+                return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+            }
+
+            getNeighbors(node) {
+                const neighbors = [];
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                
+                for (const [dx, dy] of directions) {
+                    const x = node.x + dx;
+                    const y = node.y + dy;
+                    
+                    if (x >= 0 && x < this.gridSize.width && y >= 0 && y < this.gridSize.height) {
+                        neighbors.push({ x, y });
+                    }
+                }
+                
+                return neighbors;
+            }
+
+            reconstructPath(cameFrom, current) {
+                const path = [current];
+                let currentKey = `${current.x},${current.y}`;
+                
+                while (cameFrom.has(currentKey)) {
+                    current = cameFrom.get(currentKey);
+                    path.unshift(current);
+                    currentKey = `${current.x},${current.y}`;
+                }
+                
+                return path;
+            }
+
+            async startNavigation() {
+                if (this.isNavigating) return;
+                
+                this.isNavigating = true;
+                document.getElementById('navStatus').textContent = 'Planning Path...';
+                this.logDecision('Initiating autonomous navigation sequence');
+                
+                this.path = this.findPath();
+                
+                if (this.path.length === 0) {
+                    this.logDecision('No valid path found - AI recommends obstacle clearance');
+                    document.getElementById('navStatus').textContent = 'No Path Found';
+                    this.isNavigating = false;
+                    return;
+                }
+                
+                this.logDecision(`Optimal path calculated: ${this.path.length} waypoints using A* algorithm`);
+                document.getElementById('navStatus').textContent = 'Navigating...';
+                
+                for (let i = 1; i < this.path.length; i++) {
+                    await this.sleep(500);
+                    this.robotPos = this.path[i];
+                    this.updateDisplay();
+                    this.updateSensorData();
+                    
+                    const confidence = Math.floor(Math.random() * 10) + 90;
+                    this.logDecision(`Moving to waypoint (${this.robotPos.x}, ${this.robotPos.y}) - AI confidence: ${confidence}%`);
+                }
+                
+                document.getElementById('navStatus').textContent = 'Target Reached!';
+                this.logDecision('Navigation completed successfully - Mission accomplished!');
+                this.isNavigating = false;
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            updateDisplay() {
+                const cells = document.querySelectorAll('.grid-cell');
+                cells.forEach(cell => {
+                    const x = parseInt(cell.dataset.x);
+                    const y = parseInt(cell.dataset.y);
+                    
+                    cell.className = 'grid-cell';
+                    
+                    if (x === this.robotPos.x && y === this.robotPos.y) {
+                        cell.classList.add('robot');
+                    } else if (x === this.targetPos.x && y === this.targetPos.y) {
+                        cell.classList.add('target');
+                    } else if (this.obstacles.has(`${x},${y}`)) {
+                        cell.classList.add('obstacle');
+                    } else if (this.path.some(p => p.x === x && p.y === y)) {
+                        cell.classList.add('path');
+                    }
+                });
+                
+                document.getElementById('currentPos').textContent = `(${this.robotPos.x}, ${this.robotPos.y})`;
+                document.getElementById('targetPos').textContent = `(${this.targetPos.x}, ${this.targetPos.y})`;
+                document.getElementById('pathLength').textContent = this.path.length;
+                document.getElementById('obstacleCount').textContent = this.obstacles.size;
+            }
+
+            updateSensorData() {
+                document.getElementById('lidarRange').textContent = (Math.random() * 2 + 1.5).toFixed(1) + 'm';
+                document.getElementById('cameraFov').textContent = Math.floor(Math.random() * 40 + 100) + '°';
+                document.getElementById('imuHeading').textContent = Math.floor(Math.random() * 360) + '°';
+                document.getElementById('confidence').textContent = Math.floor(Math.random() * 15 + 85) + '%';
+            }
+
+            logDecision(message) {
+                const log = document.getElementById('decisionLog');
+                const item = document.createElement('div');
+                item.className = 'decision-item';
+                
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString();
+                
+                item.innerHTML = `
+                    <div>${message}</div>
+                    <div class="decision-time">${timeStr}</div>
+                `;
+                
+                log.insertBefore(item, log.firstChild);
+                
+                // Keep only last 10 decisions
+                while (log.children.length > 10) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+
+            resetMap() {
+                this.obstacles.clear();
+                this.path = [];
+                this.robotPos = { x: 1, y: 1 };
+                this.targetPos = { x: 18, y: 13 };
+                this.isNavigating = false;
+                document.getElementById('navStatus').textContent = 'Ready';
+                this.updateDisplay();
+                this.logDecision('Map reset - System ready for new navigation task');
+            }
+        }
+
+        // Initialize the NaviBot AI system
+        const naviBot = new NaviBotAI();
+
+        // Global functions for buttons
+        function startNavigation() {
+            naviBot.startNavigation();
+        }
+
+        function generateObstacles() {
+            naviBot.generateObstacles();
+        }
+
+        function resetMap() {
+            naviBot.resetMap();
+        }
+
+        function setRandomTarget() {
+            naviBot.setRandomTarget();
+        }
+
+        // Auto-update sensor data every 2 seconds
+        setInterval(() => {
+            if (!naviBot.isNavigating) {
+                naviBot.updateSensorData();
+            }
+        }, 2000);
+
+        // Welcome message
+        setTimeout(() => {
+            naviBot.logDecision('Welcome to NaviBot AI! Click cells to add obstacles, then start navigation.');
+        }, 1000);
+    </script>
+</body>
+</html>
