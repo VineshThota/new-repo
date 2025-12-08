@@ -1,0 +1,107 @@
+# NaviMind AI - Requirements
+# Core dependencies for Physical AI + RAG indoor navigation system
+
+# Core Python packages
+numpy>=1.21.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Async and networking
+aiohttp>=3.8.0
+aiofiles>=0.7.0
+websockets>=10.0
+
+# Machine Learning and AI
+scikit-learn>=1.0.0
+tensorflow>=2.8.0
+torch>=1.11.0
+transformers>=4.15.0
+
+# Natural Language Processing
+nltk>=3.7
+spacy>=3.4.0
+sentence-transformers>=2.2.0
+
+# Vector databases and search
+faiss-cpu>=1.7.2
+chromadb>=0.3.0
+pinecone-client>=2.2.0
+
+# Sensor data processing
+bleak>=0.19.0  # Bluetooth Low Energy
+pywifi>=1.1.12  # WiFi scanning
+IMU>=0.0.5  # IMU sensor processing
+
+# Web framework and API
+fastapi>=0.85.0
+uvicorn>=0.18.0
+starlette>=0.20.0
+
+# Data validation and serialization
+pydantic>=1.10.0
+marshmallow>=3.17.0
+
+# Database and storage
+sqlalchemy>=1.4.0
+redis>=4.3.0
+mongodb>=4.2.0
+
+# Configuration and environment
+python-dotenv>=0.19.0
+pyyaml>=6.0
+click>=8.1.0
+
+# Logging and monitoring
+loguru>=0.6.0
+prometheus-client>=0.14.0
+
+# Testing and development
+pytest>=7.1.0
+pytest-asyncio>=0.19.0
+pytest-cov>=3.0.0
+black>=22.3.0
+flake8>=4.0.0
+mypy>=0.950
+
+# Geospatial and mapping
+geopy>=2.2.0
+folium>=0.12.0
+shapely>=1.8.0
+
+# Image and visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+Pillow>=9.0.0
+
+# HTTP clients and utilities
+requests>=2.28.0
+httpx>=0.23.0
+
+# Date and time handling
+python-dateutil>=2.8.0
+pytz>=2022.1
+
+# Cryptography and security
+cryptography>=37.0.0
+PyJWT>=2.4.0
+
+# Performance and optimization
+numba>=0.56.0
+cython>=0.29.0
+
+# Audio processing (for voice interface)
+speechrecognition>=3.8.0
+pyttsx3>=2.90
+pyaudio>=0.2.11
+
+# Optional: Hardware-specific packages
+# Uncomment based on deployment environment
+# RPi.GPIO>=0.7.1  # Raspberry Pi GPIO
+# adafruit-circuitpython-bno055>=5.4.0  # IMU sensor
+# bluepy>=1.3.0  # Bluetooth on Linux
+
+# Development and documentation
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+jupyter>=1.0.0
+ipython>=8.0.0
