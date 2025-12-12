@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PersonalNav AI - Intelligent Indoor Navigation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .navigation-canvas {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+            display: none;
+        }
+        
+        .status.error {
+            background: #ffeaea;
+            border-left-color: #f44336;
+        }
+        
+        .preferences-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .range-input {
+            margin-top: 10px;
+        }
+        
+        .range-input input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .range-value {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .preferences-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 PersonalNav AI</h1>
+            <p>AI-Powered Indoor Navigation with Personalization</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="card">
+                <h3>🗺️ Navigation Map</h3>
+                <canvas id="navigationCanvas" class="navigation-canvas" width="500" height="400"></canvas>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4caf50;"></div>
+                        <span>Start Point</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f44336;"></div>
+                        <span>End Point</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #333;"></div>
+                        <span>Obstacles</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2196f3;"></div>
+                        <span>Path</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="setMode('start')">Set Start Point</button>
+                    <button class="btn" onclick="setMode('end')">Set End Point</button>
+                    <button class="btn" onclick="setMode('obstacle')">Add Obstacles</button>
+                    <button class="btn" onclick="generatePath()">Generate Path</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="pathDistance">0</div>
+                        <div class="stat-label">Distance (units)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="estimatedTime">0</div>
+                        <div class="stat-label">Est. Time (min)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="obstacleCount">0</div>
+                        <div class="stat-label">Obstacles</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>⚙️ Personalization Settings</h3>
+                
+                <div class="input-group">
+                    <label for="userId">User ID:</label>
+                    <input type="text" id="userId" value="user_001" placeholder="Enter your user ID">
+                </div>
+                
+                <div class="preferences-grid">
+                    <div class="input-group">
+                        <label for="preferredSpeed">Preferred Speed:</label>
+                        <div class="range-input">
+                            <input type="range" id="preferredSpeed" min="0.5" max="3" step="0.1" value="1.0">
+                            <div class="range-value" id="speedValue">1.0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="safetyWeight">Safety Priority:</label>
+                        <div class="range-input">
+                            <input type="range" id="safetyWeight" min="0" max="1" step="0.1" value="0.4">
+                            <div class="range-value" id="safetyValue">0.4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="efficiencyWeight">Efficiency Priority:</label>
+                        <div class="range-input">
+                            <input type="range" id="efficiencyWeight" min="0" max="1" step="0.1" value="0.4">
+                            <div class="range-value" id="efficiencyValue">0.4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="comfortWeight">Comfort Priority:</label>
+                        <div class="range-input">
+                            <input type="range" id="comfortWeight" min="0" max="1" step="0.1" value="0.2">
+                            <div class="range-value" id="comfortValue">0.2</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="avoidanceLevel">Obstacle Avoidance Level:</label>
+                    <select id="avoidanceLevel">
+                        <option value="1">Low</option>
+                        <option value="2">Medium-Low</option>
+                        <option value="3" selected>Medium</option>
+                        <option value="4">Medium-High</option>
+                        <option value="5">High</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="savePreferences()">Save Preferences</button>
+                
+                <div class="status" id="status"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📡 Indoor Positioning Simulation</h3>
+            
+            <div class="controls">
+                <div class="input-group">
+                    <label>WiFi Signals:</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <input type="number" id="ap1Signal" placeholder="AP1 Signal" min="0" max="100" value="75">
+                        <input type="number" id="ap2Signal" placeholder="AP2 Signal" min="0" max="100" value="60">
+                        <input type="number" id="ap3Signal" placeholder="AP3 Signal" min="0" max="100" value="45">
+                        <input type="number" id="ap4Signal" placeholder="AP4 Signal" min="0" max="100" value="30">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Beacon Signals:</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <input type="number" id="beacon1Signal" placeholder="Beacon 1" min="0" max="100" value="80">
+                        <input type="number" id="beacon2Signal" placeholder="Beacon 2" min="0" max="100" value="65">
+                        <input type="number" id="beacon3Signal" placeholder="Beacon 3" min="0" max="100" value="50">
+                        <input type="number" id="beacon4Signal" placeholder="Beacon 4" min="0" max="100" value="35">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="updatePosition()">Update Position</button>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="currentX">0</div>
+                    <div class="stat-label">X Position</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="currentY">0</div>
+                    <div class="stat-label">Y Position</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="positionAccuracy">High</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let canvas, ctx;
+        let currentMode = 'start';
+        let startPoint = null;
+        let endPoint = null;
+        let obstacles = [];
+        let currentPath = [];
+        let currentPosition = null;
+        
+        // Initialize canvas
+        window.onload = function() {
+            canvas = document.getElementById('navigationCanvas');
+            ctx = canvas.getContext('2d');
+            
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Initialize range input listeners
+            setupRangeInputs();
+            
+            // Draw initial canvas
+            drawCanvas();
+        };
+        
+        function setupRangeInputs() {
+            const ranges = ['preferredSpeed', 'safetyWeight', 'efficiencyWeight', 'comfortWeight'];
+            ranges.forEach(id => {
+                const input = document.getElementById(id);
+                const valueDisplay = document.getElementById(id.replace('Weight', 'Value').replace('preferred', ''));
+                
+                input.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value;
+                });
+            });
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            showStatus(`Mode set to: ${mode}`, 'success');
+        }
+        
+        function handleCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round((event.clientX - rect.left) * (100 / canvas.width));
+            const y = Math.round((event.clientY - rect.top) * (100 / canvas.height));
+            
+            switch(currentMode) {
+                case 'start':
+                    startPoint = [x, y];
+                    showStatus(`Start point set at (${x}, ${y})`, 'success');
+                    break;
+                case 'end':
+                    endPoint = [x, y];
+                    showStatus(`End point set at (${x}, ${y})`, 'success');
+                    break;
+                case 'obstacle':
+                    obstacles.push([x, y]);
+                    document.getElementById('obstacleCount').textContent = obstacles.length;
+                    showStatus(`Obstacle added at (${x}, ${y})`, 'success');
+                    break;
+            }
+            
+            drawCanvas();
+        }
+        
+        function drawCanvas() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for(let i = 0; i <= 10; i++) {
+                const x = (i * canvas.width) / 10;
+                const y = (i * canvas.height) / 10;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw obstacles
+            ctx.fillStyle = '#333';
+            obstacles.forEach(obstacle => {
+                const x = (obstacle[0] * canvas.width) / 100;
+                const y = (obstacle[1] * canvas.height) / 100;
+                ctx.fillRect(x - 5, y - 5, 10, 10);
+            });
+            
+            // Draw path
+            if(currentPath.length > 1) {
+                ctx.strokeStyle = '#2196f3';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                for(let i = 0; i < currentPath.length; i++) {
+                    const x = (currentPath[i][0] * canvas.width) / 100;
+                    const y = (currentPath[i][1] * canvas.height) / 100;
+                    
+                    if(i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+            
+            // Draw start point
+            if(startPoint) {
+                ctx.fillStyle = '#4caf50';
+                const x = (startPoint[0] * canvas.width) / 100;
+                const y = (startPoint[1] * canvas.height) / 100;
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Draw end point
+            if(endPoint) {
+                ctx.fillStyle = '#f44336';
+                const x = (endPoint[0] * canvas.width) / 100;
+                const y = (endPoint[1] * canvas.height) / 100;
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Draw current position
+            if(currentPosition) {
+                ctx.fillStyle = '#ff9800';
+                const x = (currentPosition[0] * canvas.width) / 100;
+                const y = (currentPosition[1] * canvas.height) / 100;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw position accuracy circle
+                ctx.strokeStyle = '#ff9800';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(x, y, 15, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
+        async function generatePath() {
+            if(!startPoint || !endPoint) {
+                showStatus('Please set both start and end points', 'error');
+                return;
+            }
+            
+            const userId = document.getElementById('userId').value;
+            
+            try {
+                const response = await fetch('/api/navigate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        start_pos: startPoint,
+                        end_pos: endPoint,
+                        obstacles: obstacles
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if(result.path && result.path.length > 0) {
+                    currentPath = result.path;
+                    document.getElementById('pathDistance').textContent = result.total_distance.toFixed(1);
+                    document.getElementById('estimatedTime').textContent = result.estimated_duration.toFixed(1);
+                    
+                    drawCanvas();
+                    showStatus('Path generated successfully!', 'success');
+                } else {
+                    showStatus('No path found. Try removing some obstacles.', 'error');
+                }
+            } catch(error) {
+                showStatus('Error generating path: ' + error.message, 'error');
+            }
+        }
+        
+        async function savePreferences() {
+            const userId = document.getElementById('userId').value;
+            const preferences = {
+                preferred_speed: parseFloat(document.getElementById('preferredSpeed').value),
+                obstacle_avoidance_level: parseInt(document.getElementById('avoidanceLevel').value),
+                route_efficiency_weight: parseFloat(document.getElementById('efficiencyWeight').value),
+                safety_weight: parseFloat(document.getElementById('safetyWeight').value),
+                comfort_weight: parseFloat(document.getElementById('comfortWeight').value)
+            };
+            
+            try {
+                const response = await fetch('/api/preferences', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(preferences)
+                });
+                
+                const result = await response.json();
+                showStatus('Preferences saved successfully!', 'success');
+            } catch(error) {
+                showStatus('Error saving preferences: ' + error.message, 'error');
+            }
+        }
+        
+        async function updatePosition() {
+            const wifiSignals = {
+                'AP1': parseInt(document.getElementById('ap1Signal').value) || 0,
+                'AP2': parseInt(document.getElementById('ap2Signal').value) || 0,
+                'AP3': parseInt(document.getElementById('ap3Signal').value) || 0,
+                'AP4': parseInt(document.getElementById('ap4Signal').value) || 0
+            };
+            
+            const beaconSignals = {
+                'BEACON1': parseInt(document.getElementById('beacon1Signal').value) || 0,
+                'BEACON2': parseInt(document.getElementById('beacon2Signal').value) || 0,
+                'BEACON3': parseInt(document.getElementById('beacon3Signal').value) || 0,
+                'BEACON4': parseInt(document.getElementById('beacon4Signal').value) || 0
+            };
+            
+            try {
+                const response = await fetch('/api/position', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        wifi_signals: wifiSignals,
+                        beacon_signals: beaconSignals
+                    })
+                });
+                
+                const result = await response.json();
+                currentPosition = result.position;
+                
+                document.getElementById('currentX').textContent = result.position[0].toFixed(1);
+                document.getElementById('currentY').textContent = result.position[1].toFixed(1);
+                
+                // Calculate accuracy based on signal strength
+                const avgSignal = (Object.values(wifiSignals).reduce((a, b) => a + b, 0) + 
+                                 Object.values(beaconSignals).reduce((a, b) => a + b, 0)) / 8;
+                
+                let accuracy = 'Low';
+                if(avgSignal > 70) accuracy = 'High';
+                else if(avgSignal > 50) accuracy = 'Medium';
+                
+                document.getElementById('positionAccuracy').textContent = accuracy;
+                
+                drawCanvas();
+                showStatus('Position updated successfully!', 'success');
+            } catch(error) {
+                showStatus('Error updating position: ' + error.message, 'error');
+            }
+        }
+        
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type === 'error' ? 'error' : ''}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Clear obstacles function
+        function clearObstacles() {
+            obstacles = [];
+            document.getElementById('obstacleCount').textContent = '0';
+            drawCanvas();
+            showStatus('Obstacles cleared', 'success');
+        }
+        
+        // Reset everything
+        function resetAll() {
+            startPoint = null;
+            endPoint = null;
+            obstacles = [];
+            currentPath = [];
+            currentPosition = null;
+            
+            document.getElementById('obstacleCount').textContent = '0';
+            document.getElementById('pathDistance').textContent = '0';
+            document.getElementById('estimatedTime').textContent = '0';
+            
+            drawCanvas();
+            showStatus('Everything reset', 'success');
+        }
+    </script>
+</body>
+</html>
