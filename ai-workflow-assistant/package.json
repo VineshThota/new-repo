@@ -1,0 +1,43 @@
+{
+  "name": "ai-workflow-automation-assistant",
+  "version": "1.0.0",
+  "description": "AI-powered assistant to help businesses overcome employee resistance to workflow automation",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "node server/index.js",
+    "install-deps": "npm install && cd client && npm install"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1",
+    "pg": "^8.11.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "ai",
+    "automation",
+    "workflow",
+    "change-management",
+    "employee-training",
+    "resistance-management"
+  ],
+  "author": "Vinesh Thota",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VineshThota/new-repo.git"
+  }
+}
