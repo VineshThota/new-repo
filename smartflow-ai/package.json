@@ -1,0 +1,38 @@
+{
+  "name": "smartflow-ai",
+  "version": "1.0.0",
+  "description": "AI-Powered Workflow Automation with RAG Technology",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install-deps": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [
+    "ai",
+    "automation",
+    "workflow",
+    "rag",
+    "small-business",
+    "process-optimization"
+  ],
+  "author": "Vinesh Thota <vineshthota29@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VineshThota/new-repo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VineshThota/new-repo/issues"
+  },
+  "homepage": "https://github.com/VineshThota/new-repo#readme"
+}
