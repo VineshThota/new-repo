@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Industrial Inspection Robot - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .dashboard {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sensor-value {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        .sensor-value h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .sensor-value .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .robot-status {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .status-item {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .status-item.danger {
+            border-left-color: #dc3545;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .anomaly-list, .inspection-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .anomaly-item, .inspection-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            background: #fff5f5;
+        }
+
+        .inspection-item {
+            border-left-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .severity-high {
+            border-left-color: #e74c3c;
+        }
+
+        .severity-medium {
+            border-left-color: #f39c12;
+        }
+
+        .severity-low {
+            border-left-color: #27ae60;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-idle {
+            background: #95a5a6;
+        }
+
+        .status-inspecting {
+            background: #f39c12;
+            animation: pulse 1s infinite;
+        }
+
+        .status-error {
+            background: #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .grid-full {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .robot-status {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Smart Industrial Inspection Robot</h1>
+        <p>Real-time IoT monitoring with AI-powered anomaly detection and Physical AI robot inspection</p>
+    </div>
+
+    <div class="dashboard">
+        <!-- IoT Sensor Data -->
+        <div class="card">
+            <h3>📊 IoT Sensor Data</h3>
+            <div class="sensor-grid">
+                <div class="sensor-value">
+                    <h4>Temperature</h4>
+                    <div class="value" id="temp-value">--°C</div>
+                </div>
+                <div class="sensor-value">
+                    <h4>Vibration</h4>
+                    <div class="value" id="vibration-value">-- Hz</div>
+                </div>
+                <div class="sensor-value">
+                    <h4>Pressure</h4>
+                    <div class="value" id="pressure-value">-- kPa</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Robot Status -->
+        <div class="card">
+            <h3>🤖 Physical AI Robot Status</h3>
+            <div class="robot-status">
+                <div class="status-item" id="robot-status">
+                    <h4><span class="status-indicator status-idle"></span>Status</h4>
+                    <p id="robot-status-text">Idle</p>
+                </div>
+                <div class="status-item">
+                    <h4>🔋 Battery</h4>
+                    <p id="robot-battery">100%</p>
+                </div>
+                <div class="status-item">
+                    <h4>📍 Position</h4>
+                    <p id="robot-position">(0, 0, 0)</p>
+                </div>
+                <div class="status-item">
+                    <h4>🎯 Current Task</h4>
+                    <p id="robot-task">Standby</p>
+                </div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <h4>Inspection Progress</h4>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="inspection-progress" style="width: 0%"></div>
+                </div>
+                <p id="progress-text">0%</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+            <h3>🎮 System Controls</h3>
+            <div class="controls">
+                <button class="btn btn-success" onclick="startSimulation()">▶️ Start Simulation</button>
+                <button class="btn btn-danger" onclick="stopSimulation()">⏹️ Stop Simulation</button>
+                <button class="btn btn-primary" onclick="manualInspection()">🔍 Manual Inspection</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <h4>Edge AI Status</h4>
+                <div id="edge-ai-status">
+                    <p>Model: <span id="model-status">Loading...</span></p>
+                    <p>Queue Size: <span id="queue-size">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomalies -->
+        <div class="card">
+            <h3>⚠️ Detected Anomalies</h3>
+            <div class="anomaly-list" id="anomaly-list">
+                <p style="text-align: center; color: #7f8c8d; padding: 2rem;">No anomalies detected</p>
+            </div>
+        </div>
+
+        <!-- Inspection Results -->
+        <div class="card">
+            <h3>📋 AI Inspection Results</h3>
+            <div class="inspection-list" id="inspection-list">
+                <p style="text-align: center; color: #7f8c8d; padding: 2rem;">No inspections completed</p>
+            </div>
+        </div>
+
+        <!-- Real-time Chart -->
+        <div class="card grid-full">
+            <h3>📈 Real-time Sensor Trends</h3>
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart configurations
+        let sensorChart, trendChart;
+        let sensorData = { temperature: [], vibration: [], pressure: [], timestamps: [] };
+
+        // Initialize charts
+        function initCharts() {
+            const ctx1 = document.getElementById('sensorChart').getContext('2d');
+            sensorChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Temperature', 'Vibration', 'Pressure'],
+                    datasets: [{
+                        data: [25, 0.5, 101.3],
+                        backgroundColor: ['#e74c3c', '#f39c12', '#3498db'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: [],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Vibration (Hz)',
+                            data: [],
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Pressure (kPa)',
+                            data: [],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update sensor data
+        function updateSensorData() {
+            fetch('/api/sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    
+                    // Update current values
+                    const latestTemp = data.temperature[data.temperature.length - 1];
+                    const latestVibration = data.vibration[data.vibration.length - 1];
+                    const latestPressure = data.pressure[data.pressure.length - 1];
+                    
+                    document.getElementById('temp-value').textContent = latestTemp?.toFixed(1) + '°C';
+                    document.getElementById('vibration-value').textContent = latestVibration?.toFixed(2) + ' Hz';
+                    document.getElementById('pressure-value').textContent = latestPressure?.toFixed(1) + ' kPa';
+                    
+                    // Update charts
+                    sensorChart.data.datasets[0].data = [latestTemp, latestVibration * 10, latestPressure - 90];
+                    sensorChart.update('none');
+                    
+                    // Update trend chart
+                    trendChart.data.labels = data.timestamps.map(t => new Date(t).toLocaleTimeString());
+                    trendChart.data.datasets[0].data = data.temperature;
+                    trendChart.data.datasets[1].data = data.vibration.map(v => v * 10); // Scale for visibility
+                    trendChart.data.datasets[2].data = data.pressure;
+                    trendChart.update('none');
+                });
+        }
+
+        // Update robot status
+        function updateRobotStatus() {
+            fetch('/api/robot_status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('robot-status');
+                    const indicator = statusElement.querySelector('.status-indicator');
+                    
+                    // Update status indicator
+                    indicator.className = 'status-indicator status-' + data.status;
+                    
+                    document.getElementById('robot-status-text').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    document.getElementById('robot-battery').textContent = data.battery.toFixed(1) + '%';
+                    document.getElementById('robot-position').textContent = `(${data.position.x.toFixed(1)}, ${data.position.y.toFixed(1)}, ${data.position.z.toFixed(1)})`;
+                    document.getElementById('robot-task').textContent = data.current_task;
+                    
+                    // Update progress
+                    document.getElementById('inspection-progress').style.width = data.inspection_progress + '%';
+                    document.getElementById('progress-text').textContent = data.inspection_progress + '%';
+                });
+        }
+
+        // Update anomalies
+        function updateAnomalies() {
+            fetch('/api/anomalies')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('anomaly-list');
+                    if (data.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 2rem;">No anomalies detected</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = data.map(anomaly => `
+                        <div class="anomaly-item severity-${anomaly.severity.toLowerCase()}">
+                            <div class="timestamp">${new Date(anomaly.timestamp).toLocaleString()}</div>
+                            <h4>${anomaly.type}</h4>
+                            <p><strong>Severity:</strong> ${anomaly.severity}</p>
+                            <p><strong>Values:</strong> T: ${anomaly.temperature.toFixed(1)}°C, V: ${anomaly.vibration.toFixed(2)}Hz, P: ${anomaly.pressure.toFixed(1)}kPa</p>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        // Update inspection results
+        function updateInspectionResults() {
+            fetch('/api/inspection_results')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('inspection-list');
+                    if (data.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 2rem;">No inspections completed</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = data.map(result => `
+                        <div class="inspection-item">
+                            <div class="timestamp">${new Date(result.timestamp).toLocaleString()}</div>
+                            <h4>${result.anomaly_type} - ${result.location}</h4>
+                            <p><strong>AI Analysis:</strong> ${result.ai_analysis}</p>
+                            <p><strong>Recommendation:</strong> ${result.recommendation}</p>
+                            <p><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</p>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        // Update Edge AI status
+        function updateEdgeAIStatus() {
+            fetch('/api/edge_ai_status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('model-status').textContent = data.model_loaded ? 'Loaded' : 'Loading';
+                    document.getElementById('queue-size').textContent = data.queue_size;
+                });
+        }
+
+        // Control functions
+        function startSimulation() {
+            fetch('/api/start_simulation', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.status));
+        }
+
+        function stopSimulation() {
+            fetch('/api/stop_simulation', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.status));
+        }
+
+        function manualInspection() {
+            fetch('/api/manual_inspection', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.status));
+        }
+
+        // Initialize and start updates
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            
+            // Update data every 2 seconds
+            setInterval(() => {
+                updateSensorData();
+                updateRobotStatus();
+                updateAnomalies();
+                updateInspectionResults();
+                updateEdgeAIStatus();
+            }, 2000);
+            
+            // Initial load
+            updateSensorData();
+            updateRobotStatus();
+            updateAnomalies();
+            updateInspectionResults();
+            updateEdgeAIStatus();
+        });
+    </script>
+</body>
+</html>
