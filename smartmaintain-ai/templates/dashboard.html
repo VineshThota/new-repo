@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMaintain AI - Predictive Maintenance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .equipment-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .equipment-item.high-risk {
+            border-left-color: #f39c12;
+            background: #fef9e7;
+        }
+
+        .equipment-item.critical {
+            border-left-color: #e74c3c;
+            background: #fdedec;
+        }
+
+        .equipment-item h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .sensor-value {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .sensor-value .label {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            display: block;
+        }
+
+        .sensor-value .value {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-operational {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .status-maintenance {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .status-shutdown {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .risk-normal {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .risk-high {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .risk-critical {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .alert-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #3498db;
+        }
+
+        .alert-item.high {
+            border-left-color: #f39c12;
+            background: #fef9e7;
+        }
+
+        .alert-item.critical {
+            border-left-color: #e74c3c;
+            background: #fdedec;
+        }
+
+        .alert-time {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .alert-message {
+            color: #2c3e50;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .alert-action {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 2rem;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                margin: 1rem auto;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 SmartMaintain AI</h1>
+        <p>IoT + AI + Physical AI Predictive Maintenance System</p>
+    </div>
+
+    <div class="container">
+        <!-- Equipment Status Overview -->
+        <div class="card">
+            <h2>📊 Equipment Status Overview</h2>
+            <div id="equipment-status" class="loading">Loading equipment status...</div>
+        </div>
+
+        <!-- Real-time Sensor Data -->
+        <div class="card">
+            <h2>🌡️ Real-time IoT Sensor Data</h2>
+            <div id="sensor-data" class="loading">Loading sensor data...</div>
+        </div>
+
+        <!-- AI Predictions -->
+        <div class="card">
+            <h2>🧠 AI Failure Risk Predictions</h2>
+            <div id="predictions" class="loading">Loading AI predictions...</div>
+        </div>
+
+        <!-- Maintenance Alerts -->
+        <div class="card">
+            <h2>🚨 Maintenance Alerts</h2>
+            <div id="alerts" class="loading">Loading alerts...</div>
+        </div>
+
+        <!-- Physical AI Actions -->
+        <div class="card">
+            <h2>🤖 Physical AI Automated Actions</h2>
+            <div id="automated-actions" class="loading">Loading automated actions...</div>
+        </div>
+
+        <!-- System Statistics -->
+        <div class="card">
+            <h2>📈 System Statistics</h2>
+            <div id="system-stats" class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-equipment">5</div>
+                    <div class="stat-label">Total Equipment</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="operational-count">-</div>
+                    <div class="stat-label">Operational</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="maintenance-count">-</div>
+                    <div class="stat-label">Needs Maintenance</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="shutdown-count">-</div>
+                    <div class="stat-label">Shutdown</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh data every 3 seconds
+        setInterval(updateDashboard, 3000);
+        
+        // Initial load
+        updateDashboard();
+
+        async function updateDashboard() {
+            try {
+                await Promise.all([
+                    updateEquipmentStatus(),
+                    updateSensorData(),
+                    updatePredictions(),
+                    updateAlerts()
+                ]);
+                
+                document.querySelector('.last-updated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+            }
+        }
+
+        async function updateEquipmentStatus() {
+            try {
+                const response = await fetch('/api/equipment-status');
+                const data = await response.json();
+                
+                let html = '<div class="equipment-grid">';
+                let operationalCount = 0, maintenanceCount = 0, shutdownCount = 0;
+                
+                for (const [equipmentId, status] of Object.entries(data)) {
+                    const statusClass = status.status.toLowerCase().replace('_', '-');
+                    const riskClass = status.risk_level.toLowerCase().replace(' ', '-');
+                    
+                    // Count statuses
+                    if (status.status === 'OPERATIONAL') operationalCount++;
+                    else if (status.status === 'MAINTENANCE_REQUIRED') maintenanceCount++;
+                    else if (status.status === 'SHUTDOWN') shutdownCount++;
+                    
+                    html += `
+                        <div class="equipment-item ${riskClass}">
+                            <h3>${equipmentId}</h3>
+                            <div style="margin: 0.5rem 0;">
+                                <span class="status-badge status-${statusClass}">${status.status}</span>
+                                <span class="status-badge risk-${riskClass}">${status.risk_level}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">
+                                <div>Uptime: ${status.uptime_hours}h</div>
+                                <div>Efficiency: ${status.efficiency}%</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                document.getElementById('equipment-status').innerHTML = html;
+                
+                // Update statistics
+                document.getElementById('operational-count').textContent = operationalCount;
+                document.getElementById('maintenance-count').textContent = maintenanceCount;
+                document.getElementById('shutdown-count').textContent = shutdownCount;
+                
+            } catch (error) {
+                document.getElementById('equipment-status').innerHTML = 
+                    '<div class="loading">Error loading equipment status</div>';
+            }
+        }
+
+        async function updateSensorData() {
+            try {
+                const response = await fetch('/api/sensor-data');
+                const data = await response.json();
+                
+                let html = '<div class="equipment-grid">';
+                
+                for (const [equipmentId, sensors] of Object.entries(data)) {
+                    html += `
+                        <div class="equipment-item">
+                            <h3>${equipmentId}</h3>
+                            <div class="sensor-data">
+                                <div class="sensor-value">
+                                    <span class="label">Temperature</span>
+                                    <span class="value">${sensors.temperature.toFixed(1)}°C</span>
+                                </div>
+                                <div class="sensor-value">
+                                    <span class="label">Vibration</span>
+                                    <span class="value">${sensors.vibration.toFixed(1)} Hz</span>
+                                </div>
+                                <div class="sensor-value">
+                                    <span class="label">Humidity</span>
+                                    <span class="value">${sensors.humidity.toFixed(1)}%</span>
+                                </div>
+                                <div class="sensor-value">
+                                    <span class="label">Pressure</span>
+                                    <span class="value">${sensors.pressure.toFixed(1)} PSI</span>
+                                </div>
+                                <div class="sensor-value" style="grid-column: 1 / -1;">
+                                    <span class="label">Rotation Speed</span>
+                                    <span class="value">${sensors.rotation_speed.toFixed(0)} RPM</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                document.getElementById('sensor-data').innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('sensor-data').innerHTML = 
+                    '<div class="loading">Error loading sensor data</div>';
+            }
+        }
+
+        async function updatePredictions() {
+            try {
+                const response = await fetch('/api/predictions');
+                const data = await response.json();
+                
+                let html = '<div class="equipment-grid">';
+                
+                for (const [equipmentId, prediction] of Object.entries(data)) {
+                    const riskClass = prediction.risk_level.toLowerCase().replace(' ', '-');
+                    
+                    html += `
+                        <div class="equipment-item ${riskClass}">
+                            <h3>${equipmentId}</h3>
+                            <div style="margin: 0.5rem 0;">
+                                <span class="status-badge risk-${riskClass}">${prediction.risk_level}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">
+                                <div>Confidence: ${(prediction.confidence * 100).toFixed(1)}%</div>
+                                <div>Risk Score: ${prediction.risk_score}/2</div>
+                            </div>
+                            <div class="sensor-data" style="margin-top: 0.5rem;">
+                                <div class="sensor-value">
+                                    <span class="label">Normal</span>
+                                    <span class="value">${(prediction.probabilities.normal * 100).toFixed(1)}%</span>
+                                </div>
+                                <div class="sensor-value">
+                                    <span class="label">High Risk</span>
+                                    <span class="value">${(prediction.probabilities.high_risk * 100).toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                document.getElementById('predictions').innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('predictions').innerHTML = 
+                    '<div class="loading">Error loading predictions</div>';
+            }
+        }
+
+        async function updateAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const data = await response.json();
+                
+                // Maintenance Alerts
+                let alertsHtml = '';
+                if (data.maintenance_alerts && data.maintenance_alerts.length > 0) {
+                    data.maintenance_alerts.slice(-10).reverse().forEach(alert => {
+                        const priorityClass = alert.priority.toLowerCase();
+                        alertsHtml += `
+                            <div class="alert-item ${priorityClass}">
+                                <div class="alert-time">${new Date(alert.timestamp).toLocaleString()}</div>
+                                <div class="alert-message">${alert.message}</div>
+                                <div class="alert-action">Action: ${alert.recommended_action}</div>
+                                <div class="alert-action">ETA: ${alert.predicted_failure_time}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    alertsHtml = '<div class="loading">No maintenance alerts</div>';
+                }
+                
+                document.getElementById('alerts').innerHTML = alertsHtml;
+                
+                // Automated Actions
+                let actionsHtml = '';
+                if (data.automated_actions && data.automated_actions.length > 0) {
+                    data.automated_actions.slice(-5).reverse().forEach(action => {
+                        actionsHtml += `
+                            <div class="alert-item critical">
+                                <div class="alert-time">${new Date(action.timestamp).toLocaleString()}</div>
+                                <div class="alert-message">🤖 ${action.action}: ${action.equipment_id}</div>
+                                <div class="alert-action">${action.reason}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    actionsHtml = '<div class="loading">No automated actions taken</div>';
+                }
+                
+                document.getElementById('automated-actions').innerHTML = actionsHtml;
+                
+            } catch (error) {
+                document.getElementById('alerts').innerHTML = 
+                    '<div class="loading">Error loading alerts</div>';
+                document.getElementById('automated-actions').innerHTML = 
+                    '<div class="loading">Error loading automated actions</div>';
+            }
+        }
+    </script>
+    
+    <div class="last-updated"></div>
+</body>
+</html>
