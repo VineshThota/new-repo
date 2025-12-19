@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMaintenance AI Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }
+        .status-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-normal { border-left: 5px solid #28a745; }
+        .status-warning { border-left: 5px solid #ffc107; }
+        .status-critical { border-left: 5px solid #dc3545; }
+        .robot-status {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .sensor-chart {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .maintenance-queue {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0"><i class="fas fa-cogs me-3"></i>SmartMaintenance AI</h1>
+                    <p class="mb-0 mt-2">IoT + AI + Physical AI Predictive Maintenance System</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="me-3">
+                            <small>Last Update:</small><br>
+                            <span id="lastUpdate">--:--:--</span>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-light btn-sm" onclick="refreshData()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4">
+        <!-- Equipment Status Cards -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3><i class="fas fa-tachometer-alt me-2"></i>Equipment Health Overview</h3>
+            </div>
+            <div id="equipmentCards" class="row">
+                <!-- Equipment cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="row">
+            <!-- Sensor Data Visualization -->
+            <div class="col-lg-8">
+                <div class="row">
+                    <!-- Temperature Chart -->
+                    <div class="col-md-6 mb-4">
+                        <div class="sensor-chart">
+                            <h5><i class="fas fa-thermometer-half text-danger me-2"></i>Temperature Trends</h5>
+                            <canvas id="temperatureChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Vibration Chart -->
+                    <div class="col-md-6 mb-4">
+                        <div class="sensor-chart">
+                            <h5><i class="fas fa-wave-square text-warning me-2"></i>Vibration Levels</h5>
+                            <canvas id="vibrationChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Pressure Chart -->
+                    <div class="col-md-6 mb-4">
+                        <div class="sensor-chart">
+                            <h5><i class="fas fa-gauge text-info me-2"></i>Pressure Readings</h5>
+                            <canvas id="pressureChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Failure Prediction -->
+                    <div class="col-md-6 mb-4">
+                        <div class="sensor-chart">
+                            <h5><i class="fas fa-exclamation-triangle text-danger me-2"></i>Failure Predictions</h5>
+                            <canvas id="predictionChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Robot Status -->
+                <div class="card robot-status mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-robot me-2"></i>Robotic System Status</h5>
+                        <div id="robotStatus">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Status:</span>
+                                <span id="robotCurrentStatus" class="badge bg-light text-dark">Loading...</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Queue Length:</span>
+                                <span id="robotQueueLength" class="badge bg-light text-dark">0</span>
+                            </div>
+                            <div class="mb-2">
+                                <small>Current Task:</small><br>
+                                <span id="robotCurrentTask" class="text-light">None</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maintenance Queue -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Maintenance Queue</h5>
+                    </div>
+                    <div class="card-body maintenance-queue" id="maintenanceQueue">
+                        <!-- Queue items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="equipmentSelect" class="form-label">Select Equipment:</label>
+                            <select class="form-select" id="equipmentSelect">
+                                <option value="Motor_001">Motor 001</option>
+                                <option value="Pump_002">Pump 002</option>
+                                <option value="Compressor_003">Compressor 003</option>
+                                <option value="Generator_004">Generator 004</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-custom" onclick="predictFailure()">
+                                <i class="fas fa-chart-line me-2"></i>Predict Failure
+                            </button>
+                            <button class="btn btn-info btn-custom" onclick="visualInspection()">
+                                <i class="fas fa-eye me-2"></i>Visual Inspection
+                            </button>
+                            <button class="btn btn-warning btn-custom" onclick="scheduleMaintenance()">
+                                <i class="fas fa-calendar-plus me-2"></i>Schedule Maintenance
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div id="alertsContainer">
+                    <!-- Alerts will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables for charts
+        let temperatureChart, vibrationChart, pressureChart, predictionChart;
+        let sensorData = [];
+        let equipmentHealth = [];
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadInitialData();
+            startRealTimeUpdates();
+        });
+        
+        function initializeCharts() {
+            // Temperature Chart
+            const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+            temperatureChart = new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°F)',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Vibration Chart
+            const vibCtx = document.getElementById('vibrationChart').getContext('2d');
+            vibrationChart = new Chart(vibCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Vibration (mm/s)',
+                        data: [],
+                        borderColor: 'rgb(255, 205, 86)',
+                        backgroundColor: 'rgba(255, 205, 86, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Pressure Chart
+            const pressCtx = document.getElementById('pressureChart').getContext('2d');
+            pressureChart = new Chart(pressCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Pressure (PSI)',
+                        data: [],
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Prediction Chart
+            const predCtx = document.getElementById('predictionChart').getContext('2d');
+            predictionChart = new Chart(predCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        function loadInitialData() {
+            refreshData();
+        }
+        
+        function startRealTimeUpdates() {
+            setInterval(refreshData, 5000); // Update every 5 seconds
+        }
+        
+        async function refreshData() {
+            try {
+                // Update sensor data
+                const sensorResponse = await fetch('/api/sensor-data');
+                sensorData = await sensorResponse.json();
+                updateCharts();
+                
+                // Update equipment health
+                const healthResponse = await fetch('/api/equipment-health');
+                equipmentHealth = await healthResponse.json();
+                updateEquipmentCards();
+                
+                // Update robot status
+                const robotResponse = await fetch('/api/robot-status');
+                const robotStatus = await robotResponse.json();
+                updateRobotStatus(robotStatus);
+                
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                showAlert('Error refreshing data. Please check connection.', 'danger');
+            }
+        }
+        
+        function updateCharts() {
+            if (sensorData.length === 0) return;
+            
+            // Prepare data for charts
+            const labels = sensorData.slice(-10).map(d => new Date(d.timestamp).toLocaleTimeString());
+            const temperatures = sensorData.slice(-10).map(d => d.temperature);
+            const vibrations = sensorData.slice(-10).map(d => d.vibration);
+            const pressures = sensorData.slice(-10).map(d => d.pressure);
+            
+            // Update temperature chart
+            temperatureChart.data.labels = labels;
+            temperatureChart.data.datasets[0].data = temperatures;
+            temperatureChart.update('none');
+            
+            // Update vibration chart
+            vibrationChart.data.labels = labels;
+            vibrationChart.data.datasets[0].data = vibrations;
+            vibrationChart.update('none');
+            
+            // Update pressure chart
+            pressureChart.data.labels = labels;
+            pressureChart.data.datasets[0].data = pressures;
+            pressureChart.update('none');
+        }
+        
+        function updateEquipmentCards() {
+            const container = document.getElementById('equipmentCards');
+            container.innerHTML = '';
+            
+            equipmentHealth.forEach(equipment => {
+                const statusClass = equipment.current_status === 'normal' ? 'status-normal' : 
+                                  equipment.current_status === 'warning' ? 'status-warning' : 'status-critical';
+                
+                const riskBadge = equipment.risk_level === 'low' ? 'bg-success' : 
+                                equipment.risk_level === 'medium' ? 'bg-warning' : 'bg-danger';
+                
+                const card = `
+                    <div class="col-md-3 mb-3">
+                        <div class="card status-card ${statusClass}">
+                            <div class="card-body">
+                                <h6 class="card-title">${equipment.equipment_id}</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small>Status:</small>
+                                    <span class="badge ${riskBadge}">${equipment.risk_level}</span>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small>Temp</small><br>
+                                        <strong>${equipment.temperature.toFixed(1)}°F</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Vib</small><br>
+                                        <strong>${equipment.vibration.toFixed(1)}</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Press</small><br>
+                                        <strong>${equipment.pressure.toFixed(1)}</strong>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small>Failure Risk: ${(equipment.failure_probability * 100).toFixed(1)}%</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+            
+            // Update prediction chart
+            const riskCounts = { low: 0, medium: 0, high: 0 };
+            equipmentHealth.forEach(eq => {
+                riskCounts[eq.risk_level]++;
+            });
+            
+            predictionChart.data.datasets[0].data = [riskCounts.low, riskCounts.medium, riskCounts.high];
+            predictionChart.update('none');
+        }
+        
+        function updateRobotStatus(status) {
+            document.getElementById('robotCurrentStatus').textContent = status.status;
+            document.getElementById('robotQueueLength').textContent = status.queue_length;
+            document.getElementById('robotCurrentTask').textContent = 
+                status.current_task ? status.current_task.task_type : 'None';
+            
+            // Update maintenance queue
+            const queueContainer = document.getElementById('maintenanceQueue');
+            queueContainer.innerHTML = '';
+            
+            if (status.next_tasks && status.next_tasks.length > 0) {
+                status.next_tasks.forEach(task => {
+                    const priorityBadge = task.priority === 'high' ? 'bg-danger' : 
+                                         task.priority === 'medium' ? 'bg-warning' : 'bg-secondary';
+                    
+                    const taskItem = `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                            <div>
+                                <strong>${task.equipment_id}</strong><br>
+                                <small>${task.task_type}</small>
+                            </div>
+                            <span class="badge ${priorityBadge}">${task.priority}</span>
+                        </div>
+                    `;
+                    queueContainer.innerHTML += taskItem;
+                });
+            } else {
+                queueContainer.innerHTML = '<p class="text-muted text-center">No tasks in queue</p>';
+            }
+        }
+        
+        async function predictFailure() {
+            const equipmentId = document.getElementById('equipmentSelect').value;
+            try {
+                const response = await fetch(`/api/predict-failure/${equipmentId}`);
+                const prediction = await response.json();
+                
+                const alertType = prediction.risk_level === 'high' ? 'danger' : 
+                                prediction.risk_level === 'medium' ? 'warning' : 'success';
+                
+                showAlert(`${equipmentId}: ${prediction.recommendation} (Risk: ${(prediction.probability * 100).toFixed(1)}%)`, alertType);
+            } catch (error) {
+                showAlert('Error predicting failure', 'danger');
+            }
+        }
+        
+        async function visualInspection() {
+            const equipmentId = document.getElementById('equipmentSelect').value;
+            try {
+                const response = await fetch(`/api/visual-inspection/${equipmentId}`);
+                const inspection = await response.json();
+                
+                const alertType = inspection.visual_analysis.defects_detected ? 'warning' : 'success';
+                const message = inspection.visual_analysis.defects_detected ? 
+                    `Defects detected in ${equipmentId}: ${inspection.visual_analysis.defect_types.join(', ')}` :
+                    `${equipmentId}: No defects detected`;
+                
+                showAlert(message, alertType);
+            } catch (error) {
+                showAlert('Error performing visual inspection', 'danger');
+            }
+        }
+        
+        async function scheduleMaintenance() {
+            const equipmentId = document.getElementById('equipmentSelect').value;
+            try {
+                const response = await fetch('/api/schedule-maintenance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        equipment_id: equipmentId,
+                        task_type: 'manual_maintenance',
+                        priority: 'medium'
+                    })
+                });
+                
+                const result = await response.json();
+                showAlert(`Maintenance scheduled for ${equipmentId}`, 'success');
+                
+                // Refresh robot status
+                setTimeout(refreshData, 1000);
+            } catch (error) {
+                showAlert('Error scheduling maintenance', 'danger');
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alert = `
+                <div id="${alertId}" class="alert alert-${type} alert-custom alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            alertsContainer.innerHTML = alert + alertsContainer.innerHTML;
+            
+            // Auto-remove alert after 5 seconds
+            setTimeout(() => {
+                const alertElement = document.getElementById(alertId);
+                if (alertElement) {
+                    alertElement.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
