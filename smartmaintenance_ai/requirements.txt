@@ -1,0 +1,48 @@
+# SmartMaintenance AI - Python Dependencies
+# IoT + AI + Physical AI Predictive Maintenance System
+
+# Web Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Machine Learning & AI
+scikit-learn==1.3.2
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.4
+
+# Computer Vision
+opencv-python==4.8.1.78
+Pillow==10.0.1
+
+# Data Processing & Analysis
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# IoT & Sensor Simulation
+requests==2.31.0
+jsonschema==4.19.2
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+click==8.1.7
+
+# Development & Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+flake8==6.1.0
+
+# Optional: For production deployment
+gunicorn==21.2.0
+
+# Optional: For enhanced data visualization
+plotly==5.17.0
+dash==2.14.2
+
+# Optional: For MQTT IoT communication (if needed)
+paho-mqtt==1.6.1
+
+# Optional: For database integration
+SQLAlchemy==2.0.23
+Flask-SQLAlchemy==3.1.1
