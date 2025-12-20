@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Predictive Maintenance System - IoT + AI + Physical AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+            color: #3498db;
+        }
+
+        .card-header h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-normal { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-critical { background-color: #e74c3c; }
+        .status-idle { background-color: #95a5a6; }
+        .status-working { background-color: #3498db; }
+
+        .equipment-item, .robot-item, .task-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .equipment-item:hover, .robot-item:hover, .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .equipment-name, .robot-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .equipment-details, .robot-details, .task-details {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .health-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .health-excellent { color: #27ae60; }
+        .health-good { color: #2ecc71; }
+        .health-fair { color: #f39c12; }
+        .health-poor { color: #e67e22; }
+        .health-critical { color: #e74c3c; }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .sensor-reading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .sensor-info {
+            flex: 1;
+        }
+
+        .sensor-type {
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: capitalize;
+        }
+
+        .sensor-location {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .sensor-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .prediction-metric {
+            text-align: center;
+        }
+
+        .prediction-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .prediction-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-indicator" id="refreshIndicator">
+        <i class="fas fa-sync-alt"></i> Live Data
+    </div>
+
+    <header class="header">
+        <h1><i class="fas fa-cogs"></i> Autonomous Predictive Maintenance System</h1>
+        <p>Real-time IoT Monitoring • AI-Powered Predictions • Physical AI Automation</p>
+    </header>
+
+    <div class="container">
+        <div id="alertBanner" class="alert-banner" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i> <span id="alertMessage"></span>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- System Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>System Analytics</h3>
+                </div>
+                <div class="metric-grid" id="analyticsGrid">
+                    <div class="metric">
+                        <div class="metric-value" id="totalSensors">-</div>
+                        <div class="metric-label">Active Sensors</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="activeAlerts">-</div>
+                        <div class="metric-label">Active Alerts</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="pendingTasks">-</div>
+                        <div class="metric-label">Pending Tasks</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="avgHealth">-</div>
+                        <div class="metric-label">Avg Health Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipment Status -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-industry"></i>
+                    <h3>Equipment Status</h3>
+                </div>
+                <div id="equipmentList"></div>
+            </div>
+
+            <!-- Autonomous Robots -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-robot"></i>
+                    <h3>Autonomous Maintenance Robots</h3>
+                </div>
+                <div id="robotList"></div>
+            </div>
+
+            <!-- Live Sensor Data -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-sensors"></i>
+                    <h3>Live IoT Sensor Data</h3>
+                </div>
+                <div id="sensorData"></div>
+            </div>
+
+            <!-- Maintenance Tasks -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Recent Maintenance Tasks</h3>
+                </div>
+                <div id="taskList"></div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-brain"></i>
+                    <h3>AI Failure Predictions</h3>
+                </div>
+                <div id="predictionsList"></div>
+            </div>
+        </div>
+
+        <!-- Sensor Trends Chart -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-area"></i>
+                <h3>Real-time Sensor Trends</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sensorChart;
+        let sensorData = [];
+        let chartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Temperature (°C)',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Vibration (mm/s)',
+                    data: [],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Pressure (bar)',
+                    data: [],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        };
+
+        function initChart() {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            sensorChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    animation: {
+                        duration: 750
+                    }
+                }
+            });
+        }
+
+        function updateChart(newData) {
+            const now = new Date().toLocaleTimeString();
+            
+            if (chartData.labels.length >= 20) {
+                chartData.labels.shift();
+                chartData.datasets.forEach(dataset => dataset.data.shift());
+            }
+            
+            chartData.labels.push(now);
+            
+            // Add latest sensor values
+            const tempReading = newData.find(r => r.sensor_type === 'temperature');
+            const vibReading = newData.find(r => r.sensor_type === 'vibration');
+            const pressReading = newData.find(r => r.sensor_type === 'pressure');
+            
+            chartData.datasets[0].data.push(tempReading ? tempReading.value : null);
+            chartData.datasets[1].data.push(vibReading ? vibReading.value : null);
+            chartData.datasets[2].data.push(pressReading ? pressReading.value : null);
+            
+            sensorChart.update('none');
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'normal': return 'status-normal';
+                case 'warning': return 'status-warning';
+                case 'critical': return 'status-critical';
+                case 'idle': return 'status-idle';
+                case 'working': return 'status-working';
+                default: return 'status-idle';
+            }
+        }
+
+        function getHealthClass(score) {
+            if (score >= 90) return 'health-excellent';
+            if (score >= 75) return 'health-good';
+            if (score >= 60) return 'health-fair';
+            if (score >= 40) return 'health-poor';
+            return 'health-critical';
+        }
+
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        function updateAnalytics() {
+            $.get('/api/analytics', function(data) {
+                $('#totalSensors').text(data.total_sensors);
+                $('#activeAlerts').text(data.active_alerts);
+                $('#pendingTasks').text(data.pending_tasks);
+                $('#avgHealth').text(data.average_health_score + '%');
+            });
+        }
+
+        function updateEquipmentStatus() {
+            $.get('/api/equipment_status', function(data) {
+                let html = '';
+                data.forEach(equipment => {
+                    const healthClass = getHealthClass(equipment.health_score);
+                    const statusClass = getStatusClass(equipment.status);
+                    
+                    html += `
+                        <div class="equipment-item">
+                            <div class="equipment-name">
+                                <span class="status-indicator ${statusClass}"></span>
+                                ${equipment.name}
+                            </div>
+                            <div class="equipment-details">
+                                Health: <span class="health-score ${healthClass}">${equipment.health_score.toFixed(1)}%</span><br>
+                                Last Maintenance: ${formatDateTime(equipment.last_maintenance)}
+                    `;
+                    
+                    if (equipment.predicted_failure) {
+                        html += `<br>Predicted Failure: ${formatDateTime(equipment.predicted_failure)} 
+                                (${equipment.days_until_failure} days)`;
+                    }
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#equipmentList').html(html);
+            });
+        }
+
+        function updateRobots() {
+            $.get('/api/robots', function(data) {
+                let html = '';
+                data.forEach(robot => {
+                    const statusClass = getStatusClass(robot.status);
+                    
+                    html += `
+                        <div class="robot-item">
+                            <div class="robot-name">
+                                <span class="status-indicator ${statusClass}"></span>
+                                ${robot.name}
+                            </div>
+                            <div class="robot-details">
+                                Status: ${robot.status.charAt(0).toUpperCase() + robot.status.slice(1)}<br>
+                                Battery: ${robot.battery_level}%<br>
+                                Location: ${robot.location}<br>
+                                Task: ${robot.current_task}
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#robotList').html(html);
+            });
+        }
+
+        function updateSensorData() {
+            $.get('/api/sensor_data', function(data) {
+                sensorData = data;
+                let html = '';
+                
+                // Group by equipment
+                const groupedData = {};
+                data.forEach(reading => {
+                    if (!groupedData[reading.equipment_id]) {
+                        groupedData[reading.equipment_id] = [];
+                    }
+                    groupedData[reading.equipment_id].push(reading);
+                });
+                
+                Object.keys(groupedData).forEach(equipmentId => {
+                    const readings = groupedData[equipmentId];
+                    readings.forEach(reading => {
+                        const statusClass = getStatusClass(reading.status);
+                        
+                        html += `
+                            <div class="sensor-reading">
+                                <div class="sensor-info">
+                                    <div class="sensor-type">
+                                        <span class="status-indicator ${statusClass}"></span>
+                                        ${reading.sensor_type}
+                                    </div>
+                                    <div class="sensor-location">${equipmentId} - ${reading.sensor_id}</div>
+                                </div>
+                                <div class="sensor-value">${reading.value}</div>
+                            </div>
+                        `;
+                    });
+                });
+                
+                $('#sensorData').html(html);
+                updateChart(data);
+                
+                // Check for critical alerts
+                const criticalReadings = data.filter(r => r.status === 'critical');
+                if (criticalReadings.length > 0) {
+                    $('#alertMessage').text(`Critical alert: ${criticalReadings.length} sensor(s) in critical state!`);
+                    $('#alertBanner').show();
+                } else {
+                    $('#alertBanner').hide();
+                }
+            });
+        }
+
+        function updateMaintenanceTasks() {
+            $.get('/api/maintenance_tasks', function(data) {
+                let html = '';
+                data.forEach(task => {
+                    const priorityClass = task.priority === 'critical' ? 'status-critical' : 'status-warning';
+                    
+                    html += `
+                        <div class="task-item">
+                            <div class="task-details">
+                                <span class="status-indicator ${priorityClass}"></span>
+                                <strong>${task.task_type.replace('_', ' ').toUpperCase()}</strong><br>
+                                Equipment: ${task.equipment_id}<br>
+                                Robot: ${task.robot_id}<br>
+                                Priority: ${task.priority}<br>
+                                Duration: ${task.estimated_duration} min<br>
+                                Status: ${task.status}
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#taskList').html(html || '<p>No recent maintenance tasks</p>');
+            });
+        }
+
+        function updatePredictions() {
+            $.get('/api/equipment_status', function(data) {
+                let html = '';
+                data.forEach(equipment => {
+                    if (equipment.predicted_failure) {
+                        const riskLevel = equipment.failure_probability > 0.7 ? 'High' : 
+                                        equipment.failure_probability > 0.4 ? 'Medium' : 'Low';
+                        
+                        html += `
+                            <div class="prediction-card">
+                                <div class="prediction-title">${equipment.name}</div>
+                                <div class="prediction-details">
+                                    <div class="prediction-metric">
+                                        <div class="prediction-value">${(equipment.failure_probability * 100).toFixed(1)}%</div>
+                                        <div class="prediction-label">Failure Risk</div>
+                                    </div>
+                                    <div class="prediction-metric">
+                                        <div class="prediction-value">${equipment.days_until_failure}</div>
+                                        <div class="prediction-label">Days Until Failure</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                $('#predictionsList').html(html || '<p>No failure predictions available</p>');
+            });
+        }
+
+        function updateRefreshIndicator() {
+            const indicator = $('#refreshIndicator');
+            indicator.html('<div class="loading"></div> Updating...');
+            
+            setTimeout(() => {
+                indicator.html('<i class="fas fa-check"></i> Updated');
+                setTimeout(() => {
+                    indicator.html('<i class="fas fa-sync-alt"></i> Live Data');
+                }, 1000);
+            }, 500);
+        }
+
+        function updateDashboard() {
+            updateRefreshIndicator();
+            updateAnalytics();
+            updateEquipmentStatus();
+            updateRobots();
+            updateSensorData();
+            updateMaintenanceTasks();
+            updatePredictions();
+        }
+
+        // Initialize dashboard
+        $(document).ready(function() {
+            initChart();
+            updateDashboard();
+            
+            // Update every 3 seconds
+            setInterval(updateDashboard, 3000);
+        });
+    </script>
+</body>
+</html>
