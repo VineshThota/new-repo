@@ -1,0 +1,45 @@
+# Digital Twin Predictive Maintenance System Requirements
+# IoT + AI + Physical AI Integration for Smart Manufacturing
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Data Science and Machine Learning
+numpy==1.24.3
+pandas==2.0.3
+scikit-learn==1.3.0
+
+# Visualization
+plotly==5.17.0
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Data Processing
+scipy==1.11.1
+
+# Database
+sqlite3  # Built-in with Python
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+requests==2.31.0
+
+# Development and Testing
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Optional: For production deployment
+gunicorn==21.2.0
+
+# Optional: For enhanced IoT simulation
+random2==1.0.1
+threading  # Built-in with Python
+time  # Built-in with Python
+datetime  # Built-in with Python
+json  # Built-in with Python
+os  # Built-in with Python
+logging  # Built-in with Python
+typing  # Built-in with Python
+dataclasses  # Built-in with Python (Python 3.7+)
