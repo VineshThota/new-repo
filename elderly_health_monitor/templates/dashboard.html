@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elderly Health Monitor - IoT + AI Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .vital-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .vital-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .vital-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-normal { color: #28a745; }
+        .status-warning { color: #ffc107; }
+        .status-danger { color: #dc3545; }
+        
+        .alert-card {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .insight-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 123, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-custom {
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .emergency-alert {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+        
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .patient-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="patient-info">
+                        <div class="patient-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">🏥 Elderly Health Monitor</h2>
+                            <p class="mb-0 text-muted">IoT + AI + Physical AI Integration</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+                        <div class="text-end">
+                            <div class="fw-bold">Patient: <span id="patient-id">Loading...</span></div>
+                            <div class="text-muted">Last Update: <span id="last-update">--</span></div>
+                        </div>
+                        <div id="connection-status" class="badge bg-secondary">
+                            <i class="fas fa-circle"></i> Connecting...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> System Controls</h5>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button id="start-monitoring" class="btn btn-success btn-custom me-2">
+                        <i class="fas fa-play"></i> Start Monitoring
+                    </button>
+                    <button id="stop-monitoring" class="btn btn-danger btn-custom">
+                        <i class="fas fa-stop"></i> Stop Monitoring
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Alerts -->
+        <div id="emergency-alerts"></div>
+
+        <!-- Vital Signs Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card vital-card">
+                    <div class="card-body">
+                        <i class="fas fa-heartbeat fa-2x text-danger mb-3"></i>
+                        <div class="vital-label">Heart Rate</div>
+                        <div id="heart-rate" class="vital-value status-normal">--</div>
+                        <small class="text-muted">bpm</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card vital-card">
+                    <div class="card-body">
+                        <i class="fas fa-tint fa-2x text-primary mb-3"></i>
+                        <div class="vital-label">Blood Pressure</div>
+                        <div id="blood-pressure" class="vital-value status-normal">--/--</div>
+                        <small class="text-muted">mmHg</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card vital-card">
+                    <div class="card-body">
+                        <i class="fas fa-thermometer-half fa-2x text-warning mb-3"></i>
+                        <div class="vital-label">Temperature</div>
+                        <div id="temperature" class="vital-value status-normal">--</div>
+                        <small class="text-muted">°F</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card vital-card">
+                    <div class="card-body">
+                        <i class="fas fa-running fa-2x text-success mb-3"></i>
+                        <div class="vital-label">Activity Level</div>
+                        <div id="activity-level" class="vital-value status-normal">--%</div>
+                        <small class="text-muted">motion</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Health Status -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-brain"></i> AI Health Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h4">Health Status</div>
+                                    <div id="health-status" class="badge bg-success fs-6">Normal</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h4">Emergency Risk</div>
+                                    <div id="emergency-probability" class="h3 text-success">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress" style="height: 10px;">
+                                <div id="risk-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bed"></i> Sleep & Medication</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h4">Sleep Quality</div>
+                                    <div id="sleep-quality" class="h3 text-info">--%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h4">Medication</div>
+                                    <div id="medication-adherence" class="h3 text-success">--%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Insights -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Real-time Vital Signs</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="vitalsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-lightbulb"></i> AI Health Insights</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                        <div id="health-insights">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading insights...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bell"></i> Recent Alerts & Notifications</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                        <div id="recent-alerts">
+                            <div class="text-center text-muted">
+                                <p>No recent alerts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let vitalsChart;
+        let chartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Heart Rate (bpm)',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Systolic BP',
+                    data: [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Temperature (°F)',
+                    data: [],
+                    borderColor: 'rgb(255, 205, 86)',
+                    backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('vitalsChart').getContext('2d');
+            vitalsChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Heart Rate / Blood Pressure'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°F)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Real-time Health Monitoring'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update vital signs display
+        function updateVitalSigns(data) {
+            const sensorData = data.sensor_data;
+            const prediction = data.prediction;
+
+            // Update vital signs
+            document.getElementById('heart-rate').textContent = Math.round(sensorData.heart_rate);
+            document.getElementById('blood-pressure').textContent = 
+                `${Math.round(sensorData.blood_pressure_systolic)}/${Math.round(sensorData.blood_pressure_diastolic)}`;
+            document.getElementById('temperature').textContent = sensorData.body_temperature.toFixed(1);
+            document.getElementById('activity-level').textContent = Math.round(sensorData.motion_level * 100);
+            document.getElementById('sleep-quality').textContent = Math.round(sensorData.sleep_quality * 100);
+            document.getElementById('medication-adherence').textContent = Math.round(sensorData.medication_adherence * 100);
+
+            // Update AI analysis
+            document.getElementById('health-status').textContent = prediction.health_status;
+            document.getElementById('emergency-probability').textContent = 
+                Math.round(prediction.emergency_probability * 100) + '%';
+            
+            // Update progress bar
+            const riskLevel = prediction.emergency_probability * 100;
+            const progressBar = document.getElementById('risk-progress');
+            progressBar.style.width = riskLevel + '%';
+            
+            // Update colors based on risk level
+            if (riskLevel < 30) {
+                progressBar.className = 'progress-bar bg-success';
+                document.getElementById('health-status').className = 'badge bg-success fs-6';
+                document.getElementById('emergency-probability').className = 'h3 text-success';
+            } else if (riskLevel < 70) {
+                progressBar.className = 'progress-bar bg-warning';
+                document.getElementById('health-status').className = 'badge bg-warning fs-6';
+                document.getElementById('emergency-probability').className = 'h3 text-warning';
+            } else {
+                progressBar.className = 'progress-bar bg-danger';
+                document.getElementById('health-status').className = 'badge bg-danger fs-6';
+                document.getElementById('emergency-probability').className = 'h3 text-danger';
+            }
+
+            // Update patient info
+            document.getElementById('patient-id').textContent = sensorData.patient_id;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+
+            // Update chart
+            updateChart(sensorData);
+
+            // Update insights
+            updateInsights(prediction.insights);
+
+            // Check for emergency
+            if (prediction.emergency_probability > 0.8) {
+                showEmergencyAlert(prediction, sensorData);
+            }
+        }
+
+        // Update chart with new data
+        function updateChart(sensorData) {
+            const now = new Date().toLocaleTimeString();
+            
+            // Add new data point
+            chartData.labels.push(now);
+            chartData.datasets[0].data.push(sensorData.heart_rate);
+            chartData.datasets[1].data.push(sensorData.blood_pressure_systolic);
+            chartData.datasets[2].data.push(sensorData.body_temperature);
+
+            // Keep only last 20 data points
+            if (chartData.labels.length > 20) {
+                chartData.labels.shift();
+                chartData.datasets.forEach(dataset => dataset.data.shift());
+            }
+
+            vitalsChart.update('none');
+        }
+
+        // Update health insights
+        function updateInsights(insights) {
+            const container = document.getElementById('health-insights');
+            
+            if (insights && insights.length > 0) {
+                container.innerHTML = insights.map(insight => 
+                    `<div class="insight-item">
+                        <i class="fas fa-info-circle me-2"></i>
+                        ${insight}
+                    </div>`
+                ).join('');
+            } else {
+                container.innerHTML = '<div class="text-center text-muted"><p>All vitals normal</p></div>';
+            }
+        }
+
+        // Show emergency alert
+        function showEmergencyAlert(prediction, sensorData) {
+            const alertsContainer = document.getElementById('emergency-alerts');
+            const alertHtml = `
+                <div class="emergency-alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                        <div>
+                            <h4 class="mb-1">🚨 HEALTH EMERGENCY DETECTED</h4>
+                            <p class="mb-1">Emergency probability: ${Math.round(prediction.emergency_probability * 100)}%</p>
+                            <p class="mb-0">Immediate attention required for ${sensorData.patient_id}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            alertsContainer.innerHTML = alertHtml;
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                alertsContainer.innerHTML = '';
+            }, 10000);
+        }
+
+        // Fetch current readings
+        function fetchCurrentReadings() {
+            fetch('/api/current-readings')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.sensor_data && data.prediction) {
+                        updateVitalSigns(data);
+                        updateConnectionStatus('connected');
+                    } else {
+                        updateConnectionStatus('no-data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching readings:', error);
+                    updateConnectionStatus('error');
+                });
+        }
+
+        // Update connection status
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connection-status');
+            
+            switch (status) {
+                case 'connected':
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> Connected';
+                    statusElement.className = 'badge bg-success';
+                    break;
+                case 'no-data':
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> No Data';
+                    statusElement.className = 'badge bg-warning';
+                    break;
+                case 'error':
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> Error';
+                    statusElement.className = 'badge bg-danger';
+                    break;
+                default:
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
+                    statusElement.className = 'badge bg-secondary';
+            }
+        }
+
+        // Fetch recent alerts
+        function fetchRecentAlerts() {
+            fetch('/api/alerts')
+                .then(response => response.json())
+                .then(alerts => {
+                    const container = document.getElementById('recent-alerts');
+                    
+                    if (alerts && alerts.length > 0) {
+                        container.innerHTML = alerts.map(alert => {
+                            const time = new Date(alert.timestamp).toLocaleString();
+                            return `
+                                <div class="alert alert-${alert.severity === 'HIGH' ? 'danger' : 'warning'} mb-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>${alert.type}</strong>
+                                            <p class="mb-1">${alert.message.substring(0, 100)}...</p>
+                                        </div>
+                                        <small class="text-muted">${time}</small>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<div class="text-center text-muted"><p>No recent alerts</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching alerts:', error);
+                });
+        }
+
+        // Control buttons
+        document.getElementById('start-monitoring').addEventListener('click', function() {
+            fetch('/api/start-monitoring', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Monitoring started:', data);
+                    this.disabled = true;
+                    document.getElementById('stop-monitoring').disabled = false;
+                })
+                .catch(error => console.error('Error starting monitoring:', error));
+        });
+
+        document.getElementById('stop-monitoring').addEventListener('click', function() {
+            fetch('/api/stop-monitoring', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Monitoring stopped:', data);
+                    this.disabled = true;
+                    document.getElementById('start-monitoring').disabled = false;
+                })
+                .catch(error => console.error('Error stopping monitoring:', error));
+        });
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            
+            // Start fetching data immediately
+            fetchCurrentReadings();
+            fetchRecentAlerts();
+            
+            // Set up periodic updates
+            setInterval(fetchCurrentReadings, 5000); // Every 5 seconds
+            setInterval(fetchRecentAlerts, 30000);   // Every 30 seconds
+            
+            console.log('🏥 Elderly Health Monitor Dashboard Initialized');
+            console.log('Features: IoT Sensors + AI Prediction + Physical Interactions');
+        });
+    </script>
+</body>
+</html>
