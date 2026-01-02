@@ -1,0 +1,53 @@
+# SmartMaintain AI - Physical AI System Requirements
+# Python dependencies for Industrial IoT Predictive Maintenance
+# Trending Topic: Physical AI (Gartner 2026 Top Tech Trend)
+# Focus Areas: IoT + AI + Physical AI
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Machine Learning & AI
+scikit-learn==1.3.2
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.4
+
+# Computer Vision
+opencv-python==4.8.1.78
+Pillow==10.1.0
+
+# Data Processing
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Database
+sqlite3  # Built-in with Python
+
+# Utilities
+requests==2.31.0
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Development & Testing
+pytest==7.4.3
+pytest-flask==1.3.0
+
+# Optional: For production deployment
+gunicorn==21.2.0
+
+# Optional: For enhanced IoT simulation
+paho-mqtt==1.6.1
+serial==0.0.97
+
+# Optional: For advanced AI features
+tensorflow==2.15.0  # For deep learning models
+torch==2.1.1  # Alternative ML framework
+
+# Optional: For real-time data processing
+redis==5.0.1
+celery==5.3.4
+
+# Optional: For API documentation
+flask-restx==1.3.0
+flasgger==0.9.7.1
