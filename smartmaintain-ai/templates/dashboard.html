@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMaintain AI - Physical AI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .equipment-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .equipment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .equipment-id {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-operational {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-attention {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .sensor-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .sensor-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sensor-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 0.25rem;
+        }
+
+        .risk-indicator {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-medium {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .risk-high {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alerts-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .alert-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .alert-equipment {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .alert-message {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .alert-time {
+            color: #95a5a6;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .robot-status {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 1.5rem;
+        }
+
+        .robot-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .robot-light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #27ae60;
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .robot-light.busy {
+            background: #f39c12;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .equipment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 SmartMaintain AI</h1>
+        <div class="subtitle">Physical AI System for Industrial IoT Predictive Maintenance | Trending: Physical AI (Gartner 2026)</div>
+    </div>
+
+    <div class="container">
+        <!-- System Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Equipment Monitored</h3>
+                <div class="stat-value" id="equipment-count">6</div>
+            </div>
+            <div class="stat-card">
+                <h3>AI Model Status</h3>
+                <div class="stat-value" id="ai-status">TRAINED</div>
+            </div>
+            <div class="stat-card">
+                <h3>System Uptime</h3>
+                <div class="stat-value" id="uptime">99.7%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Prediction Accuracy</h3>
+                <div class="stat-value" id="accuracy">87.3%</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="main-grid">
+            <!-- Equipment Monitoring -->
+            <div>
+                <h2 style="color: white; margin-bottom: 1rem;">🏭 Equipment Monitoring</h2>
+                <div class="equipment-grid" id="equipment-grid">
+                    <!-- Equipment cards will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Alerts and Robot Status -->
+            <div>
+                <h2 style="color: white; margin-bottom: 1rem;">🚨 Maintenance Alerts</h2>
+                <div class="alerts-panel">
+                    <div class="alerts-header">
+                        <h3>Recent Alerts</h3>
+                        <span class="loading" id="alerts-loading" style="display: none;"></span>
+                    </div>
+                    <div id="alerts-list">
+                        <!-- Alerts will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="robot-status">
+                    <h3 style="margin-bottom: 1rem;">🤖 Robotic Inspection System</h3>
+                    <div class="robot-indicator">
+                        <div class="robot-light" id="robot-light"></div>
+                        <div>
+                            <div><strong>Status:</strong> <span id="robot-status">IDLE</span></div>
+                            <div><strong>Current Mission:</strong> <span id="robot-mission">None</span></div>
+                            <div><strong>Queue:</strong> <span id="robot-queue">0</span> inspections</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>SmartMaintain AI - Combining IoT Sensors, AI Algorithms, and Physical World Interactions</p>
+        <p>Powered by Physical AI Technology | Focus Areas: IoT + AI + Physical AI</p>
+    </div>
+
+    <script>
+        // Global variables
+        let equipmentData = {};
+        let updateInterval;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStats();
+            loadSensorData();
+            loadAlerts();
+            loadRobotStatus();
+            
+            // Start real-time updates
+            updateInterval = setInterval(() => {
+                loadSensorData();
+                loadAlerts();
+                loadRobotStatus();
+            }, 5000); // Update every 5 seconds
+        });
+
+        // Load system statistics
+        async function loadSystemStats() {
+            try {
+                const response = await fetch('/api/system-stats');
+                const stats = await response.json();
+                
+                document.getElementById('equipment-count').textContent = stats.equipment_count;
+                document.getElementById('ai-status').textContent = stats.ai_model_status;
+                document.getElementById('uptime').textContent = stats.system_uptime;
+                document.getElementById('accuracy').textContent = stats.prediction_accuracy;
+            } catch (error) {
+                console.error('Error loading system stats:', error);
+            }
+        }
+
+        // Load sensor data and AI predictions
+        async function loadSensorData() {
+            try {
+                const response = await fetch('/api/sensor-data');
+                const data = await response.json();
+                equipmentData = data;
+                
+                renderEquipmentCards(data);
+            } catch (error) {
+                console.error('Error loading sensor data:', error);
+            }
+        }
+
+        // Render equipment cards
+        function renderEquipmentCards(data) {
+            const grid = document.getElementById('equipment-grid');
+            grid.innerHTML = '';
+            
+            Object.entries(data).forEach(([equipmentId, equipment]) => {
+                const card = document.createElement('div');
+                card.className = 'equipment-card';
+                
+                const statusClass = equipment.status === 'OPERATIONAL' ? 'status-operational' : 'status-attention';
+                const riskClass = `risk-${equipment.ai_analysis.risk_level.toLowerCase()}`;
+                
+                card.innerHTML = `
+                    <div class="equipment-header">
+                        <div class="equipment-id">${equipmentId}</div>
+                        <div class="status-badge ${statusClass}">${equipment.status}</div>
+                    </div>
+                    
+                    <div class="sensor-grid">
+                        <div class="sensor-item">
+                            <div class="sensor-label">Temperature</div>
+                            <div class="sensor-value">${equipment.sensors.temperature.toFixed(1)}°C</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="sensor-label">Vibration</div>
+                            <div class="sensor-value">${equipment.sensors.vibration.toFixed(1)} mm/s</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="sensor-label">Pressure</div>
+                            <div class="sensor-value">${equipment.sensors.pressure.toFixed(1)} PSI</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="sensor-label">Oil Level</div>
+                            <div class="sensor-value">${equipment.sensors.oil_level.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="risk-indicator ${riskClass}">
+                        <strong>AI Risk Assessment: ${equipment.ai_analysis.risk_level}</strong><br>
+                        Failure Probability: ${(equipment.ai_analysis.failure_probability * 100).toFixed(1)}%
+                        ${equipment.ai_analysis.is_anomaly ? '<br>⚠️ Anomaly Detected' : ''}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="triggerVisualInspection('${equipmentId}')">
+                            📷 Visual Inspection
+                        </button>
+                        <button class="btn btn-secondary" onclick="triggerRoboticInspection('${equipmentId}')">
+                            🤖 Robotic Inspection
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Load maintenance alerts
+        async function loadAlerts() {
+            try {
+                document.getElementById('alerts-loading').style.display = 'inline-block';
+                
+                const response = await fetch('/api/maintenance-alerts');
+                const alerts = await response.json();
+                
+                renderAlerts(alerts.slice(0, 10)); // Show latest 10 alerts
+                
+                document.getElementById('alerts-loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alerts-loading').style.display = 'none';
+            }
+        }
+
+        // Render alerts
+        function renderAlerts(alerts) {
+            const alertsList = document.getElementById('alerts-list');
+            
+            if (alerts.length === 0) {
+                alertsList.innerHTML = '<div style="text-align: center; color: #95a5a6; padding: 2rem;">No recent alerts</div>';
+                return;
+            }
+            
+            alertsList.innerHTML = alerts.map(alert => `
+                <div class="alert-item">
+                    <div class="alert-equipment">${alert.equipment_id}</div>
+                    <div class="alert-message">
+                        <strong>${alert.severity}:</strong> ${alert.recommended_action}
+                        ${alert.robotic_inspection_required ? '<br>🤖 Robotic inspection scheduled' : ''}
+                    </div>
+                    <div class="alert-time">
+                        Confidence: ${(alert.confidence * 100).toFixed(1)}% | 
+                        ${new Date(alert.created_at).toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load robot status
+        async function loadRobotStatus() {
+            try {
+                const response = await fetch('/api/robot-status');
+                const status = await response.json();
+                
+                document.getElementById('robot-status').textContent = status.status;
+                document.getElementById('robot-mission').textContent = status.current_mission || 'None';
+                document.getElementById('robot-queue').textContent = status.queue_length;
+                
+                // Update robot light indicator
+                const light = document.getElementById('robot-light');
+                if (status.status === 'INSPECTING') {
+                    light.className = 'robot-light busy';
+                } else {
+                    light.className = 'robot-light';
+                }
+            } catch (error) {
+                console.error('Error loading robot status:', error);
+            }
+        }
+
+        // Trigger visual inspection
+        async function triggerVisualInspection(equipmentId) {
+            try {
+                const response = await fetch(`/api/visual-inspection/${equipmentId}`);
+                const result = await response.json();
+                
+                alert(`Visual Inspection Complete for ${equipmentId}\n\nCondition Score: ${result.condition_score}%\nConfidence: ${(result.inspection_confidence * 100).toFixed(1)}%\n\nRecommendations:\n${result.recommended_actions.join('\n')}`);
+            } catch (error) {
+                console.error('Error triggering visual inspection:', error);
+                alert('Failed to trigger visual inspection');
+            }
+        }
+
+        // Trigger robotic inspection
+        async function triggerRoboticInspection(equipmentId) {
+            try {
+                const response = await fetch(`/api/robotic-inspection/${equipmentId}`);
+                const result = await response.json();
+                
+                alert(`Robotic Inspection Complete for ${equipmentId}\n\nRobot: ${result.robot_id}\nInspection Points: ${result.inspection_points.length}\nNavigation Waypoints: ${result.navigation_path.length}\nStatus: ${result.completion_status}\n\nThermal Max Temp: ${result.sensor_readings.thermal_imaging.max_temperature.toFixed(1)}°C\nMaterial Integrity: ${result.sensor_readings.ultrasonic_testing.material_integrity.toFixed(1)}%`);
+            } catch (error) {
+                console.error('Error triggering robotic inspection:', error);
+                alert('Failed to trigger robotic inspection');
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
