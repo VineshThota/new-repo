@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Physical AI Predictive Maintenance System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dashboard {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .sensor-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .sensor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .sensor-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sensor-info {
+            flex: 1;
+        }
+
+        .sensor-id {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .sensor-type {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .sensor-reading {
+            text-align: right;
+        }
+
+        .reading-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .reading-status {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            margin-top: 0.25rem;
+        }
+
+        .status-normal {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .status-critical {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+
+        .robot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .robot-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .robot-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .robot-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .robot-status {
+            font-size: 0.9rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-idle {
+            background: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+        }
+
+        .status-active {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+
+        .battery-level {
+            margin-top: 0.5rem;
+        }
+
+        .battery-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ffa502, #2ed573);
+            transition: width 0.3s ease;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(23, 162, 184, 0.1);
+            border-color: #17a2b8;
+            color: #17a2b8;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .wide-card {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .wide-card {
+                grid-column: span 1;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <i class="fas fa-industry"></i>
+            Industrial Physical AI Predictive Maintenance System
+            <div class="status-indicator"></div>
+        </h1>
+    </div>
+
+    <div class="dashboard">
+        <!-- System Overview -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    System Overview
+                </div>
+                <div class="loading" id="overview-loading"></div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-value" id="total-sensors">20</div>
+                    <div class="metric-label">IoT Sensors</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="active-robots">1</div>
+                    <div class="metric-label">Active Robots</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="pending-tasks">0</div>
+                    <div class="metric-label">Pending Tasks</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="system-health">98%</div>
+                    <div class="metric-label">System Health</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IoT Sensors -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-satellite-dish"></i>
+                    IoT Sensors
+                </div>
+                <button class="btn btn-primary" onclick="refreshSensors()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="sensor-list" id="sensor-list">
+                <div class="loading"></div>
+            </div>
+        </div>
+
+        <!-- Physical AI Robots -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-robot"></i>
+                    Physical AI Robots
+                </div>
+            </div>
+            <div class="robot-grid" id="robot-grid">
+                <div class="loading"></div>
+            </div>
+        </div>
+
+        <!-- AI Analytics -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-brain"></i>
+                    AI Analytics
+                </div>
+            </div>
+            <div id="ai-alerts">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    AI models are continuously analyzing sensor data for anomalies and failure predictions.
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-success" onclick="runEquipmentAnalysis()">
+                    <i class="fas fa-search"></i> Analyze Equipment
+                </button>
+                <button class="btn btn-warning" onclick="scheduleMaintenance()">
+                    <i class="fas fa-wrench"></i> Schedule Maintenance
+                </button>
+            </div>
+        </div>
+
+        <!-- Real-time Monitoring Chart -->
+        <div class="card wide-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-chart-line"></i>
+                    Real-time Sensor Monitoring
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Maintenance Tasks -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-tasks"></i>
+                    Maintenance Tasks
+                </div>
+            </div>
+            <div id="task-list">
+                <div class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sensorChart;
+        let chartData = {
+            labels: [],
+            datasets: []
+        };
+        let updateInterval;
+
+        // Initialize dashboard
+        $(document).ready(function() {
+            initializeChart();
+            loadInitialData();
+            startRealTimeUpdates();
+        });
+
+        function initializeChart() {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            sensorChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 750
+                    }
+                }
+            });
+        }
+
+        function loadInitialData() {
+            refreshSensors();
+            refreshRobots();
+            refreshTasks();
+        }
+
+        function startRealTimeUpdates() {
+            updateInterval = setInterval(() => {
+                updateRealTimeData();
+            }, 3000); // Update every 3 seconds
+        }
+
+        function updateRealTimeData() {
+            $.get('/api/realtime-data')
+                .done(function(data) {
+                    updateOverviewMetrics(data);
+                    updateChart(data.sensor_readings);
+                    $('#overview-loading').hide();
+                })
+                .fail(function() {
+                    console.error('Failed to fetch real-time data');
+                });
+        }
+
+        function updateOverviewMetrics(data) {
+            $('#total-sensors').text(data.total_sensors);
+            $('#active-robots').text(data.active_robots);
+            $('#pending-tasks').text(data.pending_tasks);
+        }
+
+        function updateChart(sensorReadings) {
+            if (!sensorReadings || sensorReadings.length === 0) return;
+
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString();
+
+            // Add new time label
+            chartData.labels.push(timeLabel);
+            if (chartData.labels.length > 20) {
+                chartData.labels.shift();
+            }
+
+            // Group readings by sensor type
+            const sensorTypes = ['temperature', 'vibration', 'pressure', 'current', 'voltage'];
+            const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'];
+
+            sensorTypes.forEach((type, index) => {
+                const readings = sensorReadings.filter(r => r.sensor_type === type);
+                if (readings.length === 0) return;
+
+                const avgReading = readings.reduce((sum, r) => sum + r.reading, 0) / readings.length;
+
+                // Find or create dataset
+                let dataset = chartData.datasets.find(d => d.label === type);
+                if (!dataset) {
+                    dataset = {
+                        label: type,
+                        data: [],
+                        borderColor: colors[index],
+                        backgroundColor: colors[index] + '20',
+                        tension: 0.4
+                    };
+                    chartData.datasets.push(dataset);
+                }
+
+                dataset.data.push(avgReading);
+                if (dataset.data.length > 20) {
+                    dataset.data.shift();
+                }
+            });
+
+            sensorChart.update('none');
+        }
+
+        function refreshSensors() {
+            $.get('/api/sensors')
+                .done(function(sensors) {
+                    displaySensors(sensors);
+                })
+                .fail(function() {
+                    $('#sensor-list').html('<div class="alert alert-danger">Failed to load sensors</div>');
+                });
+        }
+
+        function displaySensors(sensors) {
+            const sensorList = $('#sensor-list');
+            sensorList.empty();
+
+            sensors.forEach(sensor => {
+                const anomaly = sensor.anomaly;
+                const statusClass = anomaly ? 'status-critical' : 'status-normal';
+                const statusText = anomaly ? 'ANOMALY' : 'NORMAL';
+
+                const sensorHtml = `
+                    <div class="sensor-item">
+                        <div class="sensor-info">
+                            <div class="sensor-id">${sensor.sensor_id}</div>
+                            <div class="sensor-type">${sensor.sensor_type} - ${sensor.equipment_id}</div>
+                        </div>
+                        <div class="sensor-reading">
+                            <div class="reading-value">${sensor.last_reading}</div>
+                            <div class="reading-status ${statusClass}">${statusText}</div>
+                        </div>
+                    </div>
+                `;
+                sensorList.append(sensorHtml);
+            });
+        }
+
+        function refreshRobots() {
+            $.get('/api/robots')
+                .done(function(robots) {
+                    displayRobots(robots);
+                })
+                .fail(function() {
+                    $('#robot-grid').html('<div class="alert alert-danger">Failed to load robots</div>');
+                });
+        }
+
+        function displayRobots(robots) {
+            const robotGrid = $('#robot-grid');
+            robotGrid.empty();
+
+            robots.forEach(robot => {
+                const statusClass = robot.status === 'active' ? 'status-active' : 'status-idle';
+                const batteryColor = robot.battery_level > 50 ? '#2ed573' : robot.battery_level > 20 ? '#ffa502' : '#ff4757';
+
+                const robotHtml = `
+                    <div class="robot-card">
+                        <div class="robot-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="robot-name">${robot.name}</div>
+                        <div class="robot-status ${statusClass}">${robot.status.toUpperCase()}</div>
+                        <div class="battery-level">
+                            <div>Battery: ${robot.battery_level}%</div>
+                            <div class="battery-bar">
+                                <div class="battery-fill" style="width: ${robot.battery_level}%; background-color: ${batteryColor};"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                robotGrid.append(robotHtml);
+            });
+        }
+
+        function refreshTasks() {
+            $.get('/api/tasks')
+                .done(function(data) {
+                    displayTasks(data);
+                })
+                .fail(function() {
+                    $('#task-list').html('<div class="alert alert-danger">Failed to load tasks</div>');
+                });
+        }
+
+        function displayTasks(data) {
+            const taskList = $('#task-list');
+            taskList.empty();
+
+            const allTasks = [...data.active_tasks, ...data.queued_tasks];
+
+            if (allTasks.length === 0) {
+                taskList.html('<div class="alert alert-info">No active tasks</div>');
+                return;
+            }
+
+            allTasks.forEach(task => {
+                const statusClass = task.status === 'assigned' ? 'status-active' : 'status-warning';
+                const taskHtml = `
+                    <div class="sensor-item">
+                        <div class="sensor-info">
+                            <div class="sensor-id">${task.task_id}</div>
+                            <div class="sensor-type">${task.task_type} - ${task.equipment_id}</div>
+                        </div>
+                        <div class="sensor-reading">
+                            <div class="reading-status ${statusClass}">${task.status.toUpperCase()}</div>
+                        </div>
+                    </div>
+                `;
+                taskList.append(taskHtml);
+            });
+        }
+
+        function runEquipmentAnalysis() {
+            // Get a random equipment ID for demo
+            const equipmentIds = ['EQ_PUMP_001', 'EQ_MOTOR_001', 'EQ_CONVEYOR_001', 'EQ_COMPRESSOR_001'];
+            const randomEquipment = equipmentIds[Math.floor(Math.random() * equipmentIds.length)];
+
+            $.get(`/api/equipment/${randomEquipment}/analysis`)
+                .done(function(analysis) {
+                    displayAnalysisResults(analysis);
+                })
+                .fail(function() {
+                    $('#ai-alerts').html('<div class="alert alert-danger">Analysis failed</div>');
+                });
+        }
+
+        function displayAnalysisResults(analysis) {
+            const anomaly = analysis.anomaly_detection;
+            const failure = analysis.failure_prediction;
+
+            let alertClass = 'alert-info';
+            let alertIcon = 'fa-info-circle';
+            
+            if (anomaly.anomaly) {
+                alertClass = 'alert-danger';
+                alertIcon = 'fa-exclamation-triangle';
+            } else if (failure.risk_level === 'high' || failure.risk_level === 'critical') {
+                alertClass = 'alert-warning';
+                alertIcon = 'fa-exclamation-circle';
+            }
+
+            const alertHtml = `
+                <div class="alert ${alertClass}">
+                    <i class="fas ${alertIcon}"></i>
+                    <strong>Equipment ${analysis.equipment_id} Analysis:</strong><br>
+                    Anomaly: ${anomaly.anomaly ? 'DETECTED' : 'None'} (${anomaly.severity} severity)<br>
+                    Failure Prediction: ${failure.days_until_failure.toFixed(1)} days (${failure.risk_level} risk)
+                </div>
+            `;
+            
+            $('#ai-alerts').html(alertHtml);
+        }
+
+        function scheduleMaintenance() {
+            const equipmentIds = ['EQ_PUMP_001', 'EQ_MOTOR_001', 'EQ_CONVEYOR_001', 'EQ_COMPRESSOR_001'];
+            const taskTypes = ['inspection', 'repair', 'cleaning', 'lubrication'];
+            
+            const data = {
+                equipment_id: equipmentIds[Math.floor(Math.random() * equipmentIds.length)],
+                task_type: taskTypes[Math.floor(Math.random() * taskTypes.length)],
+                priority: 'medium'
+            };
+
+            $.ajax({
+                url: '/api/maintenance/schedule',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data)
+            })
+            .done(function(result) {
+                const alertClass = result.success ? 'alert-info' : 'alert-warning';
+                const alertHtml = `
+                    <div class="alert ${alertClass}">
+                        <i class="fas fa-wrench"></i>
+                        ${result.message}
+                    </div>
+                `;
+                $('#ai-alerts').html(alertHtml);
+                refreshTasks();
+                refreshRobots();
+            })
+            .fail(function() {
+                $('#ai-alerts').html('<div class="alert alert-danger">Failed to schedule maintenance</div>');
+            });
+        }
+
+        // Cleanup on page unload
+        $(window).on('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
