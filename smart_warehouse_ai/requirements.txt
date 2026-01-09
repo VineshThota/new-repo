@@ -1,0 +1,93 @@
+# Smart Warehouse Physical AI System - Python Dependencies
+# Trending Topic: Physical AI - Intelligence in Motion
+# IoT + AI + Robotics Integration
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# AI and Computer Vision
+opencv-python==4.8.1.78
+numpy==1.24.3
+tensorflow==2.15.0
+scikit-learn==1.3.2
+pillow==10.1.0
+
+# Data Processing and Analysis
+pandas==2.1.4
+scipy==1.11.4
+
+# Database
+sqlite3  # Built-in with Python
+
+# IoT and Sensor Communication
+pyserial==3.5
+requests==2.31.0
+
+# Real-time Communication
+websockets==12.0
+flask-socketio==5.3.6
+
+# Data Validation and Serialization
+marshmallow==3.20.1
+
+# Utilities
+python-dotenv==1.0.0
+click==8.1.7
+
+# Development and Testing
+pytest==7.4.3
+flake8==6.1.0
+
+# Physical AI and Robotics Simulation
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Date and Time Handling
+python-dateutil==2.8.2
+
+# JSON and Configuration
+pyyaml==6.0.1
+
+# Logging and Monitoring
+loguru==0.7.2
+
+# Performance Monitoring
+psutil==5.9.6
+
+# Threading and Async
+threading  # Built-in with Python
+asyncio  # Built-in with Python
+
+# Mathematical Operations
+sympy==1.12
+
+# Image Processing for Computer Vision
+opencv-contrib-python==4.8.1.78
+
+# Machine Learning Model Deployment
+joblib==1.3.2
+
+# API Documentation
+flask-restx==1.3.0
+
+# CORS Support
+flask-cors==4.0.0
+
+# Environment Variables
+os  # Built-in with Python
+sys  # Built-in with Python
+
+# Random and Time
+random  # Built-in with Python
+time  # Built-in with Python
+
+# Data Structures
+dataclasses  # Built-in with Python (Python 3.7+)
+typing  # Built-in with Python
+
+# Context Management
+contextlib  # Built-in with Python
+
+# JSON Handling
+json  # Built-in with Python
