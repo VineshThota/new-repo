@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Warehouse Physical AI System - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-active { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-critical { background-color: #e74c3c; }
+        .status-idle { background-color: #95a5a6; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            font-weight: 500;
+        }
+
+        .alert-high {
+            background-color: #ffeaa7;
+            color: #d63031;
+            border-left: 4px solid #e17055;
+        }
+
+        .alert-critical {
+            background-color: #fab1a0;
+            color: #d63031;
+            border-left: 4px solid #e17055;
+        }
+
+        .real-time-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #27ae60;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Smart Warehouse Physical AI System</h1>
+        <div class="subtitle">
+            📊 Trending: Physical AI - Intelligence in Motion | 🏭 IoT + AI + Robotics Integration
+            <span class="real-time-indicator"></span>
+            <span style="font-size: 0.8rem; color: #27ae60;">Live</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- System Overview -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span class="card-title">System Overview</span>
+                </div>
+                <div id="system-metrics">
+                    <div class="loading">Loading system metrics...</div>
+                </div>
+            </div>
+
+            <!-- IoT Sensors -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📡</span>
+                    <span class="card-title">IoT Sensors Status</span>
+                </div>
+                <div id="sensors-status">
+                    <div class="loading">Loading sensor data...</div>
+                </div>
+            </div>
+
+            <!-- Physical Robots -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🤖</span>
+                    <span class="card-title">Physical Robots</span>
+                </div>
+                <div id="robots-status">
+                    <div class="loading">Loading robot status...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Management -->
+        <div class="dashboard-grid">
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <span class="card-icon">📦</span>
+                    <span class="card-title">AI-Powered Inventory Tracking</span>
+                </div>
+                <div id="inventory-table">
+                    <div class="loading">Loading inventory data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Decisions -->
+        <div class="dashboard-grid">
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <span class="card-icon">🧠</span>
+                    <span class="card-title">AI Decision Engine</span>
+                </div>
+                <div id="ai-decisions">
+                    <div class="loading">Loading AI decisions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real-time dashboard updates
+        class WarehouseDashboard {
+            constructor() {
+                this.updateInterval = 3000; // 3 seconds
+                this.init();
+            }
+
+            init() {
+                this.loadSystemMetrics();
+                this.loadSensors();
+                this.loadRobots();
+                this.loadInventory();
+                this.loadAIDecisions();
+                
+                // Start real-time updates
+                setInterval(() => {
+                    this.loadSystemMetrics();
+                    this.loadSensors();
+                    this.loadRobots();
+                    this.loadInventory();
+                    this.loadAIDecisions();
+                }, this.updateInterval);
+            }
+
+            async loadSystemMetrics() {
+                try {
+                    const response = await fetch('/api/system-status');
+                    const data = await response.json();
+                    
+                    const metricsHtml = `
+                        <div class="metric">
+                            <span class="metric-label">Total Sensors</span>
+                            <span class="metric-value">${data.total_sensors}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Active Sensors</span>
+                            <span class="metric-value">${data.active_sensors}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Inventory Items</span>
+                            <span class="metric-value">${data.total_inventory_items}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Low Stock Alerts</span>
+                            <span class="metric-value" style="color: ${data.low_stock_alerts > 0 ? '#e74c3c' : '#27ae60'}">${data.low_stock_alerts}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Active Robots</span>
+                            <span class="metric-value">${data.active_robots}/${data.total_robots}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">System Uptime</span>
+                            <span class="metric-value">${data.system_uptime}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">AI Accuracy</span>
+                            <span class="metric-value">${data.ai_accuracy}</span>
+                        </div>
+                    `;
+                    
+                    document.getElementById('system-metrics').innerHTML = metricsHtml;
+                } catch (error) {
+                    console.error('Error loading system metrics:', error);
+                }
+            }
+
+            async loadSensors() {
+                try {
+                    const response = await fetch('/api/sensors');
+                    const sensors = await response.json();
+                    
+                    let sensorsHtml = '';
+                    sensors.forEach(sensor => {
+                        const statusClass = sensor.status === 'active' ? 'status-active' : 
+                                          sensor.status === 'low_battery' ? 'status-warning' : 'status-critical';
+                        
+                        sensorsHtml += `
+                            <div class="metric">
+                                <div>
+                                    <span class="status-indicator ${statusClass}"></span>
+                                    <strong>${sensor.sensor_id}</strong><br>
+                                    <small>${sensor.sensor_type} - ${sensor.location}</small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div>🔋 ${sensor.battery_level}%</div>
+                                    <small>${sensor.last_reading.toFixed(2)}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('sensors-status').innerHTML = sensorsHtml;
+                } catch (error) {
+                    console.error('Error loading sensors:', error);
+                }
+            }
+
+            async loadRobots() {
+                try {
+                    const response = await fetch('/api/robots');
+                    const robots = await response.json();
+                    
+                    let robotsHtml = '';
+                    robots.forEach(robot => {
+                        const statusClass = robot.status === 'idle' ? 'status-idle' :
+                                          robot.status === 'charging' ? 'status-warning' : 'status-active';
+                        
+                        robotsHtml += `
+                            <div class="metric">
+                                <div>
+                                    <span class="status-indicator ${statusClass}"></span>
+                                    <strong>${robot.robot_id}</strong><br>
+                                    <small>${robot.robot_type} - ${robot.current_location}</small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div>🔋 ${robot.battery_level}%</div>
+                                    <small>${robot.status}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('robots-status').innerHTML = robotsHtml;
+                } catch (error) {
+                    console.error('Error loading robots:', error);
+                }
+            }
+
+            async loadInventory() {
+                try {
+                    const response = await fetch('/api/inventory');
+                    const inventory = await response.json();
+                    
+                    let tableHtml = `
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Current Stock</th>
+                                    <th>Threshold</th>
+                                    <th>AI Confidence</th>
+                                    <th>Location</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    inventory.forEach(item => {
+                        const stockStatus = item.current_stock <= item.min_threshold ? 'color: #e74c3c; font-weight: bold;' : '';
+                        const confidenceColor = item.ai_confidence > 0.9 ? '#27ae60' : item.ai_confidence > 0.8 ? '#f39c12' : '#e74c3c';
+                        
+                        tableHtml += `
+                            <tr>
+                                <td><strong>${item.name}</strong></td>
+                                <td>${item.category}</td>
+                                <td style="${stockStatus}">${item.current_stock}/${item.max_capacity}</td>
+                                <td>${item.min_threshold}</td>
+                                <td style="color: ${confidenceColor}">${(item.ai_confidence * 100).toFixed(1)}%</td>
+                                <td>${item.location}</td>
+                                <td>
+                                    ${item.current_stock <= item.min_threshold ? 
+                                        `<button class="btn" onclick="triggerRestock('${item.item_id}')">Restock</button>` : 
+                                        '<span style="color: #27ae60;">✓ OK</span>'
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += '</tbody></table>';
+                    document.getElementById('inventory-table').innerHTML = tableHtml;
+                } catch (error) {
+                    console.error('Error loading inventory:', error);
+                }
+            }
+
+            async loadAIDecisions() {
+                try {
+                    const response = await fetch('/api/ai-decisions');
+                    const decisions = await response.json();
+                    
+                    let decisionsHtml = '';
+                    
+                    if (decisions.length === 0) {
+                        decisionsHtml = '<div style="text-align: center; color: #27ae60; padding: 2rem;">🎯 All systems optimal - No immediate actions required</div>';
+                    } else {
+                        decisions.slice(-10).reverse().forEach(decision => {
+                            const alertClass = decision.priority === 'critical' ? 'alert-critical' : 'alert-high';
+                            const timestamp = new Date(decision.timestamp).toLocaleString();
+                            
+                            decisionsHtml += `
+                                <div class="alert ${alertClass}">
+                                    <strong>${decision.decision_type.toUpperCase()}</strong> - Priority: ${decision.priority.toUpperCase()}<br>
+                                    <strong>Reasoning:</strong> ${decision.reasoning}<br>
+                                    <strong>Action:</strong> ${decision.recommended_action}<br>
+                                    <small>Confidence: ${(decision.confidence_score * 100).toFixed(1)}% | ${timestamp}</small>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    document.getElementById('ai-decisions').innerHTML = decisionsHtml;
+                } catch (error) {
+                    console.error('Error loading AI decisions:', error);
+                }
+            }
+        }
+
+        // Trigger manual restock
+        async function triggerRestock(itemId) {
+            try {
+                const response = await fetch(`/api/trigger-restock/${itemId}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert(`✅ ${result.message}`);
+                } else {
+                    alert(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                alert('❌ Error triggering restock');
+                console.error('Error:', error);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WarehouseDashboard();
+        });
+    </script>
+</body>
+</html>
