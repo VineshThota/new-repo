@@ -1,0 +1,36 @@
+# AI-Powered Audio Enhancement for Video Conferencing
+# Requirements file for all dependencies
+
+# Core audio processing
+numpy>=1.21.0
+scipy>=1.7.0
+librosa>=0.9.0
+sounddevice>=0.4.0
+webrtcvad>=2.0.10
+
+# Web interface and visualization
+streamlit>=1.28.0
+plotly>=5.15.0
+
+# Additional utilities
+threading-utils>=0.3
+queue-manager>=1.0
+
+# Optional: For advanced audio processing
+# torch>=1.12.0  # Uncomment for PyTorch-based models
+# torchaudio>=0.12.0  # Uncomment for advanced audio ML
+# transformers>=4.20.0  # Uncomment for transformer-based audio models
+
+# Development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=22.0.0
+flake8>=5.0.0
+
+# Audio format support
+soundfile>=0.10.0
+pydub>=0.25.0
+
+# Real-time processing
+psutil>=5.9.0  # For system monitoring
+memory-profiler>=0.60.0  # For memory usage tracking
