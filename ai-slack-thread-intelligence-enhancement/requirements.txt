@@ -1,0 +1,45 @@
+# Core Web Framework
+streamlit==1.29.0
+fastapi==0.104.1
+uvicorn==0.24.0
+
+# AI/ML Libraries
+transformers==4.36.0
+torch==2.1.0
+sentence-transformers==2.2.2
+scikit-learn==1.3.2
+spacy==3.7.2
+openai==1.3.7
+
+# Vector Search and Embeddings
+faiss-cpu==1.7.4
+numpy==1.24.3
+
+# Data Processing
+pandas==2.1.4
+numpy==1.24.3
+json5==0.9.14
+
+# Text Processing
+nltk==3.8.1
+textblob==0.17.1
+
+# Visualization
+plotly==5.17.0
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+datetime==5.4
+typing-extensions==4.8.0
+
+# Development
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0
+
+# Optional: For Slack API integration (future enhancement)
+slack-sdk==3.26.1
+slack-bolt==1.18.1
