@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Manufacturing Physical AI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(45deg, #27ae60, #229954);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+            border-radius: 50%;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-operational { background: #27ae60; }
+        .status-warning { background: #f39c12; }
+        .status-critical { background: #e74c3c; }
+        .status-idle { background: #95a5a6; }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .alert-item {
+            background: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .alert-item.high {
+            border-left-color: #f39c12;
+            background: #fffbf0;
+        }
+        
+        .alert-item.medium {
+            border-left-color: #3498db;
+            background: #f0f8ff;
+        }
+        
+        .robot-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .robot-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .robot-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .robot-location {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .battery-indicator {
+            display: flex;
+            align-items: center;
+        }
+        
+        .battery-bar {
+            width: 50px;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 0.5rem;
+        }
+        
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.3s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+        
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .equipment-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .equipment-card:hover {
+            background: #e9ecef;
+            transform: scale(1.02);
+        }
+        
+        .equipment-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏭 Smart Manufacturing Physical AI Dashboard</h1>
+        <p>Real-time IoT monitoring, AI-powered predictive maintenance, and robotic automation</p>
+    </div>
+    
+    <div class="container">
+        <div class="control-panel">
+            <button class="btn success" onclick="startSystem()">🚀 Start System</button>
+            <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn danger" onclick="emergencyStop()">🛑 Emergency Stop</button>
+            <span id="systemStatus" class="status-indicator status-idle"></span>
+            <span id="statusText">System Idle</span>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- System Overview -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #3498db, #2980b9);"></div>
+                    System Overview
+                </h3>
+                <div id="systemOverview">
+                    <div class="loading">Loading system data...</div>
+                </div>
+            </div>
+            
+            <!-- IoT Sensors -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #27ae60, #229954);"></div>
+                    IoT Sensors
+                </h3>
+                <div id="sensorData">
+                    <div class="loading">Connecting to sensors...</div>
+                </div>
+            </div>
+            
+            <!-- AI Predictions -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);"></div>
+                    AI Predictions
+                </h3>
+                <div id="aiPredictions">
+                    <div class="loading">Initializing AI models...</div>
+                </div>
+            </div>
+            
+            <!-- Maintenance Alerts -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #e74c3c, #c0392b);"></div>
+                    Maintenance Alerts
+                </h3>
+                <div id="maintenanceAlerts">
+                    <div class="loading">Monitoring for alerts...</div>
+                </div>
+            </div>
+            
+            <!-- Physical AI Robots -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #f39c12, #e67e22);"></div>
+                    Physical AI Robots
+                </h3>
+                <div id="robotStatus">
+                    <div class="loading">Connecting to robots...</div>
+                </div>
+            </div>
+            
+            <!-- Equipment Status -->
+            <div class="card">
+                <h3>
+                    <div class="card-icon" style="background: linear-gradient(45deg, #1abc9c, #16a085);"></div>
+                    Equipment Status
+                </h3>
+                <div id="equipmentStatus">
+                    <div class="equipment-grid">
+                        <div class="equipment-card" onclick="viewEquipment('PUMP_001')">
+                            <div class="equipment-name">PUMP_001</div>
+                            <div class="status-indicator status-operational"></div>
+                        </div>
+                        <div class="equipment-card" onclick="viewEquipment('MOTOR_002')">
+                            <div class="equipment-name">MOTOR_002</div>
+                            <div class="status-indicator status-operational"></div>
+                        </div>
+                        <div class="equipment-card" onclick="viewEquipment('COMPRESSOR_003')">
+                            <div class="equipment-name">COMPRESSOR_003</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="equipment-card" onclick="viewEquipment('CONVEYOR_004')">
+                            <div class="equipment-name">CONVEYOR_004</div>
+                            <div class="status-indicator status-operational"></div>
+                        </div>
+                        <div class="equipment-card" onclick="viewEquipment('ROBOT_ARM_005')">
+                            <div class="equipment-name">ROBOT_ARM_005</div>
+                            <div class="status-indicator status-operational"></div>
+                        </div>
+                        <div class="equipment-card" onclick="viewEquipment('CNC_MACHINE_006')">
+                            <div class="equipment-name">CNC_MACHINE_006</div>
+                            <div class="status-indicator status-operational"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let systemRunning = false;
+        let refreshInterval;
+        
+        async function startSystem() {
+            try {
+                const response = await fetch('/api/system/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    systemRunning = true;
+                    document.getElementById('systemStatus').className = 'status-indicator status-operational';
+                    document.getElementById('statusText').textContent = 'System Running';
+                    
+                    // Start auto-refresh
+                    refreshInterval = setInterval(refreshData, 5000);
+                    refreshData();
+                } else {
+                    alert('Failed to start system: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error starting system:', error);
+                alert('Error starting system');
+            }
+        }
+        
+        async function refreshData() {
+            if (!systemRunning) return;
+            
+            try {
+                // Fetch system status
+                const statusResponse = await fetch('/api/system/status');
+                const statusData = await statusResponse.json();
+                updateSystemOverview(statusData);
+                
+                // Fetch sensor data
+                const sensorResponse = await fetch('/api/sensors/data');
+                const sensorData = await sensorResponse.json();
+                updateSensorData(sensorData);
+                
+                // Fetch maintenance alerts
+                const alertsResponse = await fetch('/api/maintenance/alerts');
+                const alertsData = await alertsResponse.json();
+                updateMaintenanceAlerts(alertsData);
+                
+                // Fetch robot status
+                const robotResponse = await fetch('/api/robots/status');
+                const robotData = await robotResponse.json();
+                updateRobotStatus(robotData);
+                
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
+        }
+        
+        function updateSystemOverview(data) {
+            const html = `
+                <div class="metric">
+                    <span>Total Equipment</span>
+                    <span class="metric-value">${data.total_equipment}</span>
+                </div>
+                <div class="metric">
+                    <span>Active Sensors</span>
+                    <span class="metric-value">${data.active_sensors}</span>
+                </div>
+                <div class="metric">
+                    <span>Active Alerts</span>
+                    <span class="metric-value">${data.active_alerts}</span>
+                </div>
+                <div class="metric">
+                    <span>System Health</span>
+                    <span class="metric-value">${data.system_health}</span>
+                </div>
+                <div class="metric">
+                    <span>Last Updated</span>
+                    <span class="metric-value">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                </div>
+            `;
+            document.getElementById('systemOverview').innerHTML = html;
+        }
+        
+        function updateSensorData(data) {
+            if (data.length === 0) {
+                document.getElementById('sensorData').innerHTML = '<div class="loading">No sensor data available</div>';
+                return;
+            }
+            
+            const latest = data[data.length - 1];
+            const html = `
+                <div class="metric">
+                    <span>Equipment</span>
+                    <span class="metric-value">${latest.equipment_id}</span>
+                </div>
+                <div class="metric">
+                    <span>Temperature</span>
+                    <span class="metric-value">${latest.temperature.toFixed(1)}°C</span>
+                </div>
+                <div class="metric">
+                    <span>Vibration</span>
+                    <span class="metric-value">${latest.vibration.toFixed(2)} Hz</span>
+                </div>
+                <div class="metric">
+                    <span>Pressure</span>
+                    <span class="metric-value">${latest.pressure.toFixed(1)} bar</span>
+                </div>
+                <div class="metric">
+                    <span>RPM</span>
+                    <span class="metric-value">${latest.rotation_speed.toFixed(0)}</span>
+                </div>
+                <div class="metric">
+                    <span>Power</span>
+                    <span class="metric-value">${latest.power_consumption.toFixed(1)} kW</span>
+                </div>
+            `;
+            document.getElementById('sensorData').innerHTML = html;
+        }
+        
+        function updateMaintenanceAlerts(data) {
+            if (data.length === 0) {
+                document.getElementById('maintenanceAlerts').innerHTML = '<div class="loading">No active alerts</div>';
+                return;
+            }
+            
+            const html = data.slice(-5).map(alert => `
+                <div class="alert-item ${alert.severity.toLowerCase()}">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                        ${alert.equipment_id} - ${alert.severity}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        ${alert.recommended_action}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">
+                        Confidence: ${(alert.confidence_score * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('maintenanceAlerts').innerHTML = html;
+        }
+        
+        function updateRobotStatus(data) {
+            const html = Object.entries(data).map(([robotId, status]) => `
+                <div class="robot-item">
+                    <div class="robot-info">
+                        <div class="robot-name">${robotId}</div>
+                        <div class="robot-location">${status.location}</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="status-indicator status-${status.status === 'idle' ? 'idle' : 'operational'}"></span>
+                        <span style="margin-right: 1rem; font-size: 0.9rem;">${status.status}</span>
+                        <div class="battery-indicator">
+                            ${status.battery}%
+                            <div class="battery-bar">
+                                <div class="battery-fill" style="width: ${status.battery}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('robotStatus').innerHTML = html;
+        }
+        
+        function viewEquipment(equipmentId) {
+            // This would open a detailed view for the specific equipment
+            alert(`Viewing details for ${equipmentId}`);
+        }
+        
+        function emergencyStop() {
+            if (confirm('Are you sure you want to perform an emergency stop?')) {
+                systemRunning = false;
+                clearInterval(refreshInterval);
+                document.getElementById('systemStatus').className = 'status-indicator status-critical';
+                document.getElementById('statusText').textContent = 'Emergency Stop';
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Smart Manufacturing Physical AI Dashboard loaded');
+        });
+    </script>
+</body>
+</html>
