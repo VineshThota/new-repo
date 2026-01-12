@@ -1,0 +1,34 @@
+# AI Video Conferencing Audio Enhancement - Dependencies
+
+# Core web framework
+streamlit>=1.28.0
+
+# Audio processing libraries
+librosa>=0.10.0
+soundfile>=0.12.0
+scipy>=1.11.0
+numpy>=1.24.0
+
+# AI/ML frameworks
+torch>=2.0.0
+torchaudio>=2.0.0
+transformers>=4.30.0
+
+# Visualization
+plotly>=5.15.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Utilities
+pandas>=2.0.0
+requests>=2.31.0
+httpx>=0.24.0
+python-dotenv>=1.0.0
+
+# Audio format support
+pydub>=0.25.0
+ffmpeg-python>=0.2.0
+
+# Optional: For production deployment
+# gunicorn>=21.0.0
+# uvicorn>=0.23.0
