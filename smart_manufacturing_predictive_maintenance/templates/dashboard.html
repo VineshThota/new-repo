@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Manufacturing Predictive Maintenance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-normal { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-critical { background-color: #e74c3c; }
+        
+        .equipment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .equipment-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .equipment-health {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .health-good { color: #27ae60; }
+        .health-warning { color: #f39c12; }
+        .health-critical { color: #e74c3c; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
+        .anomaly-item {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+        }
+        
+        .anomaly-equipment {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .anomaly-time {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .prediction-item {
+            background: rgba(155, 89, 182, 0.1);
+            border-left: 4px solid #9b59b6;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+        }
+        
+        .prediction-days {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #9b59b6;
+        }
+        
+        .prediction-recommendation {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.25rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(52, 152, 219, 0.05);
+            border-radius: 5px;
+        }
+        
+        .metric-label {
+            color: #7f8c8d;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏭 Smart Manufacturing Predictive Maintenance</h1>
+        <p>Real-time IoT monitoring with AI-powered predictive analytics</p>
+    </div>
+    
+    <div class="container">
+        <div class="controls">
+            <button class="btn btn-success" onclick="startSimulation()">▶️ Start Simulation</button>
+            <button class="btn btn-danger" onclick="stopSimulation()">⏹️ Stop Simulation</button>
+            <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Equipment Status Card -->
+            <div class="card">
+                <h3>🔧 Equipment Status</h3>
+                <div id="equipment-status">
+                    <div class="loading">Loading equipment status...</div>
+                </div>
+            </div>
+            
+            <!-- Real-time Sensor Data Chart -->
+            <div class="card">
+                <h3>📊 Real-time Sensor Data</h3>
+                <div class="chart-container">
+                    <canvas id="sensorChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Anomaly Detection -->
+            <div class="card">
+                <h3>⚠️ Anomaly Detection</h3>
+                <div id="anomalies">
+                    <div class="loading">Scanning for anomalies...</div>
+                </div>
+            </div>
+            
+            <!-- Failure Predictions -->
+            <div class="card">
+                <h3>🔮 Failure Predictions</h3>
+                <div id="predictions">
+                    <div class="loading">Generating predictions...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Metrics -->
+        <div class="card">
+            <h3>📈 System Metrics</h3>
+            <div class="dashboard-grid">
+                <div>
+                    <h4>Temperature Readings (°C)</h4>
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h4>Vibration Levels (mm/s)</h4>
+                    <div class="chart-container">
+                        <canvas id="vibrationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let sensorChart, temperatureChart, vibrationChart;
+        let updateInterval;
+        
+        // Initialize charts
+        function initCharts() {
+            const chartConfig = {
+                type: 'line',
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            };
+            
+            // Sensor overview chart
+            sensorChart = new Chart(document.getElementById('sensorChart'), {
+                ...chartConfig,
+                data: {
+                    datasets: [
+                        {
+                            label: 'Temperature',
+                            data: [],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Vibration',
+                            data: [],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                }
+            });
+            
+            // Temperature chart
+            temperatureChart = new Chart(document.getElementById('temperatureChart'), {
+                ...chartConfig,
+                data: {
+                    datasets: [
+                        {
+                            label: 'Motor 1',
+                            data: [],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)'
+                        },
+                        {
+                            label: 'Motor 2',
+                            data: [],
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)'
+                        }
+                    ]
+                }
+            });
+            
+            // Vibration chart
+            vibrationChart = new Chart(document.getElementById('vibrationChart'), {
+                ...chartConfig,
+                data: {
+                    datasets: [
+                        {
+                            label: 'Conveyor 1',
+                            data: [],
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)'
+                        },
+                        {
+                            label: 'Pump 1',
+                            data: [],
+                            borderColor: '#9b59b6',
+                            backgroundColor: 'rgba(155, 89, 182, 0.1)'
+                        }
+                    ]
+                }
+            });
+        }
+        
+        // Update equipment status
+        async function updateEquipmentStatus() {
+            try {
+                const response = await fetch('/api/equipment/status');
+                const equipment = await response.json();
+                
+                const container = document.getElementById('equipment-status');
+                container.innerHTML = '';
+                
+                Object.entries(equipment).forEach(([id, data]) => {
+                    const statusClass = `status-${data.status}`;
+                    const healthClass = data.health > 80 ? 'health-good' : 
+                                       data.health > 60 ? 'health-warning' : 'health-critical';
+                    
+                    const item = document.createElement('div');
+                    item.className = 'equipment-item';
+                    item.innerHTML = `
+                        <div>
+                            <div class="equipment-name">
+                                <span class="status-indicator ${statusClass}"></span>
+                                ${id.replace('_', ' ').toUpperCase()}
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Temperature:</span>
+                                <span class="metric-value">${data.temperature}°C</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Vibration:</span>
+                                <span class="metric-value">${data.vibration} mm/s</span>
+                            </div>
+                        </div>
+                        <div class="equipment-health ${healthClass}">
+                            ${data.health}%
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error updating equipment status:', error);
+            }
+        }
+        
+        // Update sensor data charts
+        async function updateSensorCharts() {
+            try {
+                const response = await fetch('/api/sensor/data');
+                const sensorData = await response.json();
+                
+                if (sensorData.length === 0) return;
+                
+                // Update main sensor chart
+                const latestData = sensorData.slice(-20); // Last 20 readings
+                
+                sensorChart.data.datasets[0].data = latestData.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.temperature
+                }));
+                
+                sensorChart.data.datasets[1].data = latestData.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.vibration * 10 // Scale for visibility
+                }));
+                
+                sensorChart.update('none');
+                
+                // Update temperature chart
+                const motor1Data = latestData.filter(d => d.equipment_id === 'motor_1');
+                const motor2Data = latestData.filter(d => d.equipment_id === 'motor_2');
+                
+                temperatureChart.data.datasets[0].data = motor1Data.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.temperature
+                }));
+                
+                temperatureChart.data.datasets[1].data = motor2Data.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.temperature
+                }));
+                
+                temperatureChart.update('none');
+                
+                // Update vibration chart
+                const conveyorData = latestData.filter(d => d.equipment_id === 'conveyor_1');
+                const pumpData = latestData.filter(d => d.equipment_id === 'pump_1');
+                
+                vibrationChart.data.datasets[0].data = conveyorData.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.vibration
+                }));
+                
+                vibrationChart.data.datasets[1].data = pumpData.map(d => ({
+                    x: new Date(d.timestamp),
+                    y: d.vibration
+                }));
+                
+                vibrationChart.update('none');
+                
+            } catch (error) {
+                console.error('Error updating sensor charts:', error);
+            }
+        }
+        
+        // Update anomalies
+        async function updateAnomalies() {
+            try {
+                const response = await fetch('/api/anomalies');
+                const anomalies = await response.json();
+                
+                const container = document.getElementById('anomalies');
+                
+                if (anomalies.length === 0) {
+                    container.innerHTML = '<div class="loading">✅ No anomalies detected</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                anomalies.forEach(anomaly => {
+                    const item = document.createElement('div');
+                    item.className = 'anomaly-item';
+                    item.innerHTML = `
+                        <div class="anomaly-equipment">${anomaly.equipment_id.replace('_', ' ').toUpperCase()}</div>
+                        <div>Severity: ${anomaly.severity.toUpperCase()}</div>
+                        <div>Score: ${anomaly.anomaly_score.toFixed(3)}</div>
+                        <div class="anomaly-time">${new Date(anomaly.timestamp).toLocaleString()}</div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error updating anomalies:', error);
+            }
+        }
+        
+        // Update predictions
+        async function updatePredictions() {
+            try {
+                const equipmentIds = ['motor_1', 'motor_2', 'conveyor_1', 'pump_1'];
+                const container = document.getElementById('predictions');
+                container.innerHTML = '';
+                
+                for (const equipmentId of equipmentIds) {
+                    try {
+                        const response = await fetch(`/api/prediction/${equipmentId}`);
+                        if (response.ok) {
+                            const prediction = await response.json();
+                            
+                            const item = document.createElement('div');
+                            item.className = 'prediction-item';
+                            item.innerHTML = `
+                                <div class="equipment-name">${equipmentId.replace('_', ' ').toUpperCase()}</div>
+                                <div class="prediction-days">${prediction.days_until_failure} days until failure</div>
+                                <div>Confidence: ${(prediction.confidence * 100).toFixed(1)}%</div>
+                                <div class="prediction-recommendation">${prediction.recommendation}</div>
+                            `;
+                            container.appendChild(item);
+                        }
+                    } catch (error) {
+                        console.error(`Error getting prediction for ${equipmentId}:`, error);
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating predictions:', error);
+            }
+        }
+        
+        // Control functions
+        async function startSimulation() {
+            try {
+                await fetch('/api/start_simulation', { method: 'POST' });
+                alert('IoT simulation started!');
+                startAutoUpdate();
+            } catch (error) {
+                console.error('Error starting simulation:', error);
+            }
+        }
+        
+        async function stopSimulation() {
+            try {
+                await fetch('/api/stop_simulation', { method: 'POST' });
+                alert('IoT simulation stopped!');
+                stopAutoUpdate();
+            } catch (error) {
+                console.error('Error stopping simulation:', error);
+            }
+        }
+        
+        function refreshData() {
+            updateEquipmentStatus();
+            updateSensorCharts();
+            updateAnomalies();
+            updatePredictions();
+        }
+        
+        function startAutoUpdate() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(refreshData, 3000); // Update every 3 seconds
+        }
+        
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            refreshData();
+            startAutoUpdate();
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoUpdate();
+        });
+    </script>
+</body>
+</html>
