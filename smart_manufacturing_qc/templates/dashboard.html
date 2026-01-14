@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Manufacturing Quality Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .sensor-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .sensor-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .sensor-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .sensor-status {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-normal {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-alert {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+            border-color: #5a67d8;
+        }
+
+        .upload-area.dragover {
+            background: #e6f3ff;
+            border-color: #4299e1;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .robot-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .robot-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .robot-position {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .quality-result {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .quality-result.fail {
+            border-left-color: #dc3545;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .log-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .log-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .log-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 Smart Manufacturing Quality Control</h1>
+            <p>IoT Sensors • Computer Vision • Physical AI Robotics</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- IoT Sensor Monitoring -->
+            <div class="card">
+                <h3>📊 IoT Sensor Monitoring</h3>
+                <div class="sensor-grid" id="sensorGrid">
+                    <!-- Sensor data will be populated here -->
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn" onclick="startMonitoring()">Start Monitoring</button>
+                    <button class="btn" onclick="stopMonitoring()">Stop Monitoring</button>
+                </div>
+            </div>
+
+            <!-- Quality Control Analysis -->
+            <div class="card">
+                <h3>🔍 Quality Control Analysis</h3>
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
+                    <p>📷 Click or drag to upload product image</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">Supports JPG, PNG formats</p>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                <img id="imagePreview" class="image-preview" style="display: none;">
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="autoSort" checked>
+                    <label for="autoSort">Enable automatic robotic sorting</label>
+                </div>
+                
+                <button class="btn" id="analyzeBtn" onclick="analyzeImage()" disabled>Analyze Quality</button>
+                
+                <div id="qualityResult" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Robotic Arm Status -->
+            <div class="card">
+                <h3>🤖 Robotic Arm Status</h3>
+                <div class="robot-status" id="robotStatus">
+                    <!-- Robot status will be populated here -->
+                </div>
+                <div class="robot-position" id="robotPosition">
+                    Position: Loading...
+                </div>
+            </div>
+
+            <!-- Quality Statistics -->
+            <div class="card">
+                <h3>📈 Quality Statistics</h3>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Statistics will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs -->
+        <div class="card">
+            <h3>📋 System Logs</h3>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">[INFO] System initialized</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImage = null;
+        let monitoringInterval = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSensorData();
+            updateRobotStatus();
+            updateQualityStats();
+            
+            // Start periodic updates
+            setInterval(updateSensorData, 3000);
+            setInterval(updateRobotStatus, 5000);
+            setInterval(updateQualityStats, 10000);
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        });
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        }
+
+        function handleImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                addLog('ERROR', 'Please select a valid image file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImage = e.target.result;
+                const preview = document.getElementById('imagePreview');
+                preview.src = currentImage;
+                preview.style.display = 'block';
+                
+                document.getElementById('analyzeBtn').disabled = false;
+                addLog('INFO', `Image loaded: ${file.name}`);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function analyzeImage() {
+            if (!currentImage) {
+                addLog('ERROR', 'No image selected');
+                return;
+            }
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.innerHTML = '<span class="loading"></span> Analyzing...';
+            analyzeBtn.disabled = true;
+
+            const autoSort = document.getElementById('autoSort').checked;
+
+            fetch('/api/analyze-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: currentImage,
+                    auto_sort: autoSort
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayQualityResult(data);
+                updateQualityStats();
+                
+                if (data.sorting_operation) {
+                    addLog('SUCCESS', `Product sorted to ${data.sorting_operation.destination_bin}`);
+                }
+                
+                analyzeBtn.innerHTML = 'Analyze Quality';
+                analyzeBtn.disabled = false;
+            })
+            .catch(error => {
+                addLog('ERROR', `Analysis failed: ${error.message}`);
+                analyzeBtn.innerHTML = 'Analyze Quality';
+                analyzeBtn.disabled = false;
+            });
+        }
+
+        function displayQualityResult(result) {
+            const resultDiv = document.getElementById('qualityResult');
+            const statusClass = result.status === 'PASS' ? '' : 'fail';
+            
+            resultDiv.innerHTML = `
+                <div class="quality-result ${statusClass}">
+                    <h4>Quality Analysis Result</h4>
+                    <p><strong>Status:</strong> ${result.status}</p>
+                    <p><strong>Quality Score:</strong> ${result.quality_score}</p>
+                    <p><strong>Defect Probability:</strong> ${result.defect_probability}</p>
+                    ${result.defect_type ? `<p><strong>Defect Type:</strong> ${result.defect_type}</p>` : ''}
+                    <p><strong>Edge Density:</strong> ${result.edge_density}</p>
+                    <p><strong>Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}</p>
+                </div>
+            `;
+            
+            addLog(result.status === 'PASS' ? 'SUCCESS' : 'ERROR', 
+                   `Quality analysis: ${result.status} (Score: ${result.quality_score})`);
+        }
+
+        function updateSensorData() {
+            fetch('/api/sensor-data')
+            .then(response => response.json())
+            .then(data => {
+                const sensorGrid = document.getElementById('sensorGrid');
+                sensorGrid.innerHTML = '';
+                
+                Object.entries(data).forEach(([sensorName, config]) => {
+                    const isAlert = config.value > config.threshold;
+                    const statusClass = isAlert ? 'status-alert' : 'status-normal';
+                    const statusText = isAlert ? 'ALERT' : 'NORMAL';
+                    
+                    sensorGrid.innerHTML += `
+                        <div class="sensor-item">
+                            <div class="sensor-value">${config.value}</div>
+                            <div class="sensor-label">${sensorName.replace('_', ' ').toUpperCase()}</div>
+                            <div class="sensor-label">${config.unit}</div>
+                            <div class="sensor-status ${statusClass}">${statusText}</div>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                addLog('ERROR', `Failed to update sensor data: ${error.message}`);
+            });
+        }
+
+        function updateRobotStatus() {
+            fetch('/api/robot-status')
+            .then(response => response.json())
+            .then(data => {
+                const robotStatus = document.getElementById('robotStatus');
+                robotStatus.innerHTML = `
+                    <div class="robot-item">
+                        <div><strong>Gripper</strong></div>
+                        <div>${data.gripper_state.toUpperCase()}</div>
+                    </div>
+                    <div class="robot-item">
+                        <div><strong>Status</strong></div>
+                        <div>${data.is_moving ? 'MOVING' : 'IDLE'}</div>
+                    </div>
+                    <div class="robot-item">
+                        <div><strong>Operations</strong></div>
+                        <div>${data.movement_count}</div>
+                    </div>
+                `;
+                
+                const robotPosition = document.getElementById('robotPosition');
+                robotPosition.innerHTML = `
+                    Position: X:${data.position.x.toFixed(1)} Y:${data.position.y.toFixed(1)} Z:${data.position.z.toFixed(1)}
+                `;
+            })
+            .catch(error => {
+                addLog('ERROR', `Failed to update robot status: ${error.message}`);
+            });
+        }
+
+        function updateQualityStats() {
+            fetch('/api/quality-statistics')
+            .then(response => response.json())
+            .then(data => {
+                const statsGrid = document.getElementById('statsGrid');
+                
+                if (Object.keys(data).length === 0) {
+                    statsGrid.innerHTML = '<div class="stat-item"><div class="stat-label">No data available</div></div>';
+                    return;
+                }
+                
+                statsGrid.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">${data.total_items || 0}</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${data.passed_items || 0}</div>
+                        <div class="stat-label">Passed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${data.failed_items || 0}</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${data.pass_rate || 0}%</div>
+                        <div class="stat-label">Pass Rate</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${data.avg_quality_score || 0}</div>
+                        <div class="stat-label">Avg Quality</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${data.total_operations || 0}</div>
+                        <div class="stat-label">Robot Ops</div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                addLog('ERROR', `Failed to update statistics: ${error.message}`);
+            });
+        }
+
+        function startMonitoring() {
+            fetch('/api/start-monitoring', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                addLog('SUCCESS', 'IoT sensor monitoring started');
+            })
+            .catch(error => {
+                addLog('ERROR', `Failed to start monitoring: ${error.message}`);
+            });
+        }
+
+        function stopMonitoring() {
+            fetch('/api/stop-monitoring', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                addLog('INFO', 'IoT sensor monitoring stopped');
+            })
+            .catch(error => {
+                addLog('ERROR', `Failed to stop monitoring: ${error.message}`);
+            });
+        }
+
+        function addLog(level, message) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = `log-${level.toLowerCase()}`;
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${logClass}`;
+            logEntry.textContent = `[${timestamp}] [${level}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 log entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+    </script>
+</body>
+</html>
