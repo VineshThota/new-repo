@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Manufacturing Safety & Predictive Maintenance Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+        }
+        .status-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-operational {
+            border-left: 5px solid #28a745;
+        }
+        .status-warning {
+            border-left: 5px solid #ffc107;
+        }
+        .status-danger {
+            border-left: 5px solid #dc3545;
+        }
+        .safety-zone {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .safety-safe {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+        }
+        .safety-caution {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        .safety-danger {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        .safety-emergency {
+            background-color: #f5c6cb;
+            border: 2px solid #721c24;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .sensor-chart {
+            height: 300px;
+        }
+        .emergency-btn {
+            font-size: 1.2em;
+            padding: 15px 30px;
+            border-radius: 50px;
+        }
+        .health-score {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .health-good {
+            color: #28a745;
+        }
+        .health-warning {
+            color: #ffc107;
+        }
+        .health-critical {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-industry"></i> Smart Manufacturing Dashboard</h1>
+                    <p class="mb-0">IoT + AI + Physical AI Integration for Safety & Predictive Maintenance</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button id="emergencyStop" class="btn btn-danger emergency-btn">
+                        <i class="fas fa-stop-circle"></i> EMERGENCY STOP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Equipment Status Section -->
+            <div class="col-lg-6">
+                <div class="card status-card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-cogs"></i> Equipment Status</h5>
+                    </div>
+                    <div class="card-body" id="equipmentStatus">
+                        <!-- Equipment status will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Zones Section -->
+            <div class="col-lg-6">
+                <div class="card status-card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5><i class="fas fa-shield-alt"></i> Human-Robot Safety Zones</h5>
+                    </div>
+                    <div class="card-body" id="safetyZones">
+                        <!-- Safety zones will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Real-time Sensor Data -->
+            <div class="col-lg-8">
+                <div class="card status-card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-chart-line"></i> Real-time Sensor Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="sensorChart" class="sensor-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Maintenance -->
+            <div class="col-lg-4">
+                <div class="card status-card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-wrench"></i> Predictive Maintenance</h5>
+                    </div>
+                    <div class="card-body" id="maintenancePredictions">
+                        <!-- Maintenance predictions will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- System Controls -->
+            <div class="col-12">
+                <div class="card status-card mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-sliders-h"></i> System Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="resetSystems" class="btn btn-success btn-lg me-3">
+                                    <i class="fas fa-refresh"></i> Reset All Systems
+                                </button>
+                                <button id="refreshData" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sync"></i> Refresh Data
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="d-inline-block">
+                                    <small class="text-muted">Last Updated: </small>
+                                    <span id="lastUpdated" class="badge bg-secondary">Never</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let sensorChart;
+        let updateInterval;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSensorChart();
+            updateDashboard();
+            startAutoUpdate();
+            setupEventListeners();
+        });
+
+        // Initialize sensor data chart
+        function initializeSensorChart() {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            sensorChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: [],
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Vibration',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Pressure (bar)',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Live Sensor Readings'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update dashboard data
+        async function updateDashboard() {
+            try {
+                await Promise.all([
+                    updateEquipmentStatus(),
+                    updateSafetyZones(),
+                    updateSensorData(),
+                    updateMaintenancePredictions()
+                ]);
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+            }
+        }
+
+        // Update equipment status
+        async function updateEquipmentStatus() {
+            const response = await fetch('/api/equipment_status');
+            const equipment = await response.json();
+            
+            const container = document.getElementById('equipmentStatus');
+            container.innerHTML = '';
+            
+            Object.entries(equipment).forEach(([id, status]) => {
+                const healthClass = status.health_score > 90 ? 'health-good' : 
+                                  status.health_score > 70 ? 'health-warning' : 'health-critical';
+                
+                const statusClass = status.health_score > 90 ? 'status-operational' : 
+                                  status.health_score > 70 ? 'status-warning' : 'status-danger';
+                
+                container.innerHTML += `
+                    <div class="row mb-3 p-3 ${statusClass}" style="border-radius: 10px; background-color: #f8f9fa;">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-microchip"></i> ${id.replace('_', ' ').toUpperCase()}</h6>
+                            <small class="text-muted">Status: ${status.status}</small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="health-score ${healthClass}">${status.health_score}%</div>
+                            <small class="text-muted">Health Score</small>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Update safety zones
+        async function updateSafetyZones() {
+            const response = await fetch('/api/safety_zones');
+            const zones = await response.json();
+            
+            const container = document.getElementById('safetyZones');
+            container.innerHTML = '';
+            
+            Object.entries(zones).forEach(([zoneId, zone]) => {
+                const safetyClass = `safety-${zone.safety_level}`;
+                const robotStatus = zone.robot_active ? 'Active' : 'Stopped';
+                const robotIcon = zone.robot_active ? 'fa-play-circle text-success' : 'fa-stop-circle text-danger';
+                
+                container.innerHTML += `
+                    <div class="safety-zone ${safetyClass}">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-map-marker-alt"></i> ${zoneId.replace('_', ' ').toUpperCase()}</h6>
+                                <small>Humans Present: ${zone.humans_present}</small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div><i class="fas ${robotIcon}"></i> Robot: ${robotStatus}</div>
+                                <small class="text-muted">Safety: ${zone.safety_level.toUpperCase()}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Update sensor data chart
+        async function updateSensorData() {
+            const response = await fetch('/api/sensor_data');
+            const sensorData = await response.json();
+            
+            if (sensorData.length > 0) {
+                // Update chart with latest data
+                const latestData = sensorData[sensorData.length - 1];
+                const timestamp = new Date(latestData.timestamp).toLocaleTimeString();
+                
+                // Add new data point
+                sensorChart.data.labels.push(timestamp);
+                sensorChart.data.datasets[0].data.push(latestData.temperature);
+                sensorChart.data.datasets[1].data.push(latestData.vibration);
+                sensorChart.data.datasets[2].data.push(latestData.pressure);
+                
+                // Keep only last 20 data points
+                if (sensorChart.data.labels.length > 20) {
+                    sensorChart.data.labels.shift();
+                    sensorChart.data.datasets.forEach(dataset => dataset.data.shift());
+                }
+                
+                sensorChart.update('none');
+            }
+        }
+
+        // Update maintenance predictions
+        async function updateMaintenancePredictions() {
+            const equipmentIds = ['machine_1', 'machine_2', 'robot_arm_1', 'robot_arm_2'];
+            const container = document.getElementById('maintenancePredictions');
+            container.innerHTML = '';
+            
+            for (const equipmentId of equipmentIds) {
+                try {
+                    const response = await fetch(`/api/maintenance_prediction/${equipmentId}`);
+                    const prediction = await response.json();
+                    
+                    const priorityClass = prediction.priority === 'high' ? 'text-danger' : 
+                                        prediction.priority === 'medium' ? 'text-warning' : 'text-success';
+                    
+                    container.innerHTML += `
+                        <div class="mb-3 p-3" style="border-radius: 10px; background-color: #f8f9fa; border-left: 4px solid ${prediction.priority === 'high' ? '#dc3545' : prediction.priority === 'medium' ? '#ffc107' : '#28a745'};">
+                            <h6>${equipmentId.replace('_', ' ').toUpperCase()}</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Days until maintenance:</small>
+                                    <div class="fw-bold">${prediction.days_until_maintenance}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Priority:</small>
+                                    <div class="fw-bold ${priorityClass}">${prediction.priority.toUpperCase()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error(`Error fetching prediction for ${equipmentId}:`, error);
+                }
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('emergencyStop').addEventListener('click', async () => {
+                if (confirm('Are you sure you want to activate emergency stop for all systems?')) {
+                    try {
+                        const response = await fetch('/api/emergency_stop', { method: 'POST' });
+                        const result = await response.json();
+                        alert(result.message);
+                        updateDashboard();
+                    } catch (error) {
+                        alert('Error activating emergency stop: ' + error.message);
+                    }
+                }
+            });
+
+            document.getElementById('resetSystems').addEventListener('click', async () => {
+                if (confirm('Are you sure you want to reset all systems to normal operation?')) {
+                    try {
+                        const response = await fetch('/api/reset_systems', { method: 'POST' });
+                        const result = await response.json();
+                        alert(result.message);
+                        updateDashboard();
+                    } catch (error) {
+                        alert('Error resetting systems: ' + error.message);
+                    }
+                }
+            });
+
+            document.getElementById('refreshData').addEventListener('click', () => {
+                updateDashboard();
+            });
+        }
+
+        // Start auto-update
+        function startAutoUpdate() {
+            updateInterval = setInterval(updateDashboard, 3000); // Update every 3 seconds
+        }
+
+        // Stop auto-update when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(updateInterval);
+            } else {
+                startAutoUpdate();
+            }
+        });
+    </script>
+</body>
+</html>
